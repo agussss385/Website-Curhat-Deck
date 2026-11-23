@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CurhatDeck - Venting Zone Ala Gen-Z</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Custom Style -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+  
+  <!-- Alpine.js (Defer) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-violet-950 text-slate-100 min-h-screen flex flex-col font-sans relative selection:bg-pink-500 selection:text-white" x-data="appData()">
+
+  <!-- Toast Notification -->
+  <div x-show="toast.show" 
+       x-transition:enter="transition ease-out duration-300 transform"
+       x-transition:enter-start="translate-y-[-20px] opacity-0"
+       x-transition:enter-end="translate-y-0 opacity-100"
+       x-transition:leave="transition ease-in duration-200 transform"
+       x-transition:leave-start="translate-y-0 opacity-100"
+       x-transition:leave-end="translate-y-[-20px] opacity-0"
+       class="fixed top-5 right-5 z-50 px-5 py-3 rounded-xl font-bold border-2 border-black shadow-[4px_4px_0px_0px_#000] flex items-center gap-3 text-sm"
+       :class="toast.type === 'error' ? 'bg-red-400 text-black' : 'bg-lime-400 text-black'"
+       style="display: none;">
+    <i :data-lucide="toast.type === 'error' ? 'alert-triangle' : 'check-circle-2'" class="w-5 h-5"></i>
+    <span x-text="toast.message"></span>
+  </div>
+
+  <!-- Navbar -->
+  <header class="border-b-4 border-black bg-slate-900 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" @click="activeTab = 'student'">
+        <div class="w-10 h-10 rounded-xl bg-pink-500 border-2 border-black flex items-center justify-center font-black text-xl text-black shadow-[2px_2px_0px_0px_#000]">
+          CD
+        </div>
+        <div>
+          <h1 class="font-bold text-lg font-space tracking-tight text-pink-400 leading-none">CurhatDeck✨</h1>
+          <span class="text-[10px] text-slate-400 font-mono">Peer-to-Peer & AI Venting</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- Status Counselor Indicator -->
+        <div class="hidden md:flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border-2 border-black text-xs font-bold">
+          <span class="w-2.5 h-2.5 rounded-full" :class="counselorStatus === 'Online' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></span>
+          <span>Konselor: <strong class="text-pink-300" x-text="counselorStatus">Online</strong></span>
+        </div>
+
+        <!-- Role Switcher Button -->
+        <button @click="toggleRoleModal()" class="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-black font-extrabold text-xs sm:text-sm rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-2">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          <span x-text="currentRole === 'student' ? 'Login Konselor' : 'Mode Mahasiswa'"></span>
+        </button>
+
+        <!-- Emergency SOS Button -->
+        <button @click="showSosModal = true" class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all flex items-center gap-1.5">
+          <i data-lucide="siren" class="w-4 h-4"></i>
+          <span>SOS</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+    
+    <!-- MODE MAHASISWA -->
+    <template x-if="currentRole === 'student'">
+      <div class="space-y-6">
+        <!-- Hero Banner -->
+        <section class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl p-6 sm:p-10 border-4 border-black shadow-[6px_6px_0px_0px_#000] text-black relative overflow-hidden">
+          <div class="max-w-2xl relative z-10">
+            <span class="bg-yellow-300 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black inline-block mb-3 uppercase tracking-wider">No Judgment Zone 🤫</span>
+            <h2 class="text-3xl sm:text-5xl font-black font-space leading-tight mb-3">Isi Kepala Lagi Penuh & Overthinking?</h2>
+            <p class="text-slate-900 font-semibold text-base sm:text-lg mb-6">Tumpahin semua di sini. Ngobrol bareng Gemini AI 24/7 atau request sesi curhat 1-on-1 langsung bareng konselor.</p>
+            
+            <div class="flex flex-wrap gap-3">
+              <button @click="activeTab = 'ai-chat'" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+                <i data-lucide="bot" class="w-5 h-5"></i>
+                Curhat ke Gemini AI
+              </button>
+              <button @click="activeTab = 'booking'" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                Booking Sesi 1-on-1
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <div class="flex gap-2 border-b-2 border-slate-800 pb-2 overflow-x-auto">
+          <button @click="activeTab = 'ai-chat'" :class="activeTab === 'ai-chat' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> AI Peer Counselor
+          </button>
+          <button @click="activeTab = 'booking'" :class="activeTab === 'booking' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="user-heart" class="w-4 h-4"></i> Sesi Privat Konselor
+          </button>
+        </div>
+
+        <!-- TAB 1: Gemini AI Chat -->
+        <div x-show="activeTab === 'ai-chat'" class="bg-slate-900 border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000] flex flex-col h-[600px] overflow-hidden">
+          <div class="bg-slate-800 p-4 border-b-2 border-black flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black font-bold">
+                <i data-lucide="bot" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-cyan-300">CurhatBuddy (Gemini AI)</h3>
+                <span class="text-[11px] text-slate-400">Siap dengerin 24/7 tanpa nge-judge</span>
+              </div>
+            </div>
+            <button @click="clearChat()" class="text-xs text-red-400 hover:underline flex items-center gap-1 font-semibold">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Chat
+            </button>
+          </div>
+
+          <!-- Quick Prompts -->
+          <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
+            <span class="text-slate-500 font-bold whitespace-nowrap">Topic Quick-Pick:</span>
+            <button @click="sendQuickPrompt('Lagi burn out banget sama tugas kuliah dan skripsi 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎓 Burnout Skripsi</button>
+            <button @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan dan karier')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Future Anxiety</button>
+            <button @click="sendQuickPrompt('Merasa FOMO dan kesepian di lingkungan kampus')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💔 Kesepian/FOMO</button>
+          </div>
+
+          <!-- Chat History Window -->
+          <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4">
+            <template x-for="(msg, index) in chatMessages" :key="index">
+              <div class="flex gap-3" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+                <div x-show="msg.role === 'model'" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex-shrink-0 flex items-center justify-center text-black font-bold">
+                  <i data-lucide="bot" class="w-4 h-4"></i>
+                </div>
+                <div class="max-w-[80%] rounded-2xl p-4 border-2 border-black text-sm leading-relaxed" 
+                     :class="msg.role === 'user' ? 'bg-pink-500 text-black font-medium shadow-[3px_3px_0px_0px_#000]' : 'bg-slate-800 text-slate-100 shadow-[3px_3px_0px_0px_#000]'">
+                  <p class="whitespace-pre-line" x-text="msg.text"></p>
+                </div>
+              </div>
+            </template>
+
+            <!-- Loading Indicator -->
+            <div x-show="isAiThinking" class="flex gap-3 justify-start">
+              <div class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black">
+                <i data-lucide="bot" class="w-4 h-4"></i>
+              </div>
+              <div class="bg-slate-800 border-2 border-black rounded-2xl p-4 text-xs font-mono text-cyan-300 animate-pulse">
+                CurhatBuddy lagi ngetik balesan... ✍️
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <form @submit.prevent="sendChatMessage()" class="p-4 bg-slate-800 border-t-2 border-black flex gap-2">
+            <input type="text" x-model="userInput" placeholder="Tumpahin unek-unek kamu di sini..." class="flex-1 bg-slate-900 border-2 border-black rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink-400 text-white placeholder-slate-500">
+            <button type="submit" :disabled="isAiThinking || !userInput.trim()" class="px-5 py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] disabled:opacity-50 flex items-center justify-center">
+              <i data-lucide="send" class="w-5 h-5"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- TAB 2: Booking Form -->
+        <div x-show="activeTab === 'booking'" class="bg-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 shadow-[6px_6px_0px_0px_#000]">
+          <div class="max-w-xl mx-auto space-y-6">
+            <div>
+              <h3 class="text-2xl font-black font-space text-pink-400">Booking Sesi Curhat 1-on-1</h3>
+              <p class="text-slate-400 text-sm mt-1">Jadwalkan sesi konsultasi langsung dengan konselor. Identitas kamu aman & terjaga privasinya.</p>
+            </div>
+
+            <form @submit.prevent="submitBooking()" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama / Inisial (Anonim Boleh)</label>
+                <input type="text" x-model="bookingForm.name" required placeholder="Contoh: Alex / Mahasiswa Fasilkom" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kontak WhatsApp / Email</label>
+                <input type="text" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@univ.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Pilih Tanggal</label>
+                  <input type="date" x-model="bookingForm.date" required class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Pilih Jam Sesi</label>
+                  <select x-model="bookingForm.time" required class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                    <option value="">-- Pilih Jam --</option>
+                    <option value="10:00 WIB">10:00 WIB</option>
+                    <option value="13:00 WIB">13:00 WIB</option>
+                    <option value="16:00 WIB">16:00 WIB</option>
+                    <option value="19:00 WIB">19:00 WIB</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Gambaran Singkat Hal yang Ingin Dicurhatkan</label>
+                <textarea x-model="bookingForm.topic" rows="3" required placeholder="Ceritain sedikit yang lagi dirasain..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white"></textarea>
+              </div>
+
+              <button type="submit" class="w-full py-3.5 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-base">
+                Kirim Permintaan Booking 🚀
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- MODE KONSELOR (DASHBOARD ADMIN) -->
+    <template x-if="currentRole === 'counselor'">
+      <div class="space-y-6">
+        <!-- Counselor Header & Controls -->
+        <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span class="bg-pink-500 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black uppercase">Dashboard Konselor</span>
+            <h2 class="text-2xl font-black font-space mt-1">Panel Manajemen Sesi & Konseling</h2>
+          </div>
+
+          <!-- Status Toggle -->
+          <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-2xl border-2 border-black">
+            <span class="text-xs font-bold text-slate-300 pl-2">Status Kamu:</span>
+            <button @click="setCounselorStatus('Online')" :class="counselorStatus === 'Online' ? 'bg-emerald-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Online</button>
+            <button @click="setCounselorStatus('Sibuk')" :class="counselorStatus === 'Sibuk' ? 'bg-amber-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Sibuk</button>
+            <button @click="setCounselorStatus('Offline')" :class="counselorStatus === 'Offline' ? 'bg-slate-600 text-white font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Offline</button>
+          </div>
+        </div>
+
+        <!-- Bookings List Table -->
+        <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000]">
+          <h3 class="text-lg font-bold font-space text-pink-400 mb-4 flex items-center gap-2">
+            <i data-lucide="inbox" class="w-5 h-5"></i> Antrean Permintaan Sesi 1-on-1
+          </h3>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800 text-xs font-bold uppercase tracking-wider text-slate-300 border-b-2 border-black">
+                <tr>
+                  <th class="p-3">Nama/Inisial</th>
+                  <th class="p-3">Kontak</th>
+                  <th class="p-3">Jadwal</th>
+                  <th class="p-3">Topik Curhat</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                <template x-for="(item, idx) in bookings" :key="item.id">
+                  <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-bold text-white" x-text="item.name"></td>
+                    <td class="p-3 text-slate-300 font-mono text-xs" x-text="item.contact"></td>
+                    <td class="p-3 text-slate-300 text-xs" x-text="`${item.date} (${item.time})`"></td>
+                    <td class="p-3 text-slate-400 text-xs max-w-xs truncate" x-text="item.topic"></td>
+                    <td class="p-3">
+                      <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border border-black"
+                            :class="{
+                              'bg-yellow-300 text-black': item.status === 'Pending',
+                              'bg-emerald-400 text-black': item.status === 'Disetujui',
+                              'bg-slate-600 text-white': item.status === 'Selesai'
+                            }"
+                            x-text="item.status"></span>
+                    </td>
+                    <td class="p-3 text-right space-x-1">
+                      <button x-show="item.status === 'Pending'" @click="updateBookingStatus(item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
+                      <button x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
+                      <button @click="deleteBooking(item.id)" class="px-2 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="bookings.length === 0">
+                  <td colspan="6" class="p-6 text-center text-slate-500 italic">Belum ada antrean booking curhat.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </template>
+  </main>
+
+  <!-- SOS Emergency Modal -->
+  <div x-show="showSosModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+    <div class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ef4444] space-y-4">
+      <div class="flex justify-between items-start">
+        <h3 class="text-xl font-black font-space text-red-400 flex items-center gap-2">
+          <i data-lucide="siren" class="w-6 h-6"></i> Bantuan Darurat (Hotline)
+        </h3>
+        <button @click="showSosModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Jika kamu atau temanmu berada dalam situasi krisis kesehatan mental yang membutuhkan pertolongan cepat, jangan ragu untuk menghubungi layanan resmi berikut:
+      </p>
+      <div class="space-y-2">
+        <a href="tel:119" class="block p-3 bg-red-500/20 border-2 border-red-500 rounded-xl text-center font-bold text-red-300 hover:bg-red-500/30">
+          📞 Hotline Layanan Sejiwa: 119 (Ext. 8)
+        </a>
+        <a href="https://www.intothelightid.org/tentang-bunuh-diri/layanan-konseling-2/" target="_blank" class="block p-3 bg-slate-800 border-2 border-black rounded-xl text-center font-bold text-xs text-cyan-300 hover:bg-slate-700">
+          🌐 Layanan Crisis Into The Light Indonesia
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Project Files -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/ai.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
