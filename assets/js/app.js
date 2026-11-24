@@ -283,6 +283,27 @@ function appData() {
       }
     },
 
+    getWebhookEndpoint() {
+      return typeof CONFIG !== "undefined" &&
+        (CONFIG.BOOKING_ENDPOINT ||
+          CONFIG.BOOKING_WEBHOOK_URL ||
+          CONFIG.N8N_WEBHOOK_URL)
+        ? String(
+            CONFIG.BOOKING_ENDPOINT ||
+              CONFIG.BOOKING_WEBHOOK_URL ||
+              CONFIG.N8N_WEBHOOK_URL
+          ).trim()
+        : "";
+    },
+
+    hasValidWebhookEndpoint(endpoint) {
+      return (
+        Boolean(endpoint) &&
+        !endpoint.includes("DOMAIN_N8N_KAMU") &&
+        !endpoint.includes("<URL-HTTPS-N8N-KAMU>")
+      );
+    },
+
     async submitBooking() {
       if (!this.ensureStudentLoggedIn("jadwal booking konseling")) return;
       if (this.isSubmittingBooking) return;
@@ -374,23 +395,9 @@ function appData() {
         topic: ""
       };
 
-      const endpoint =
-        typeof CONFIG !== "undefined" &&
-        (CONFIG.BOOKING_ENDPOINT ||
-          CONFIG.BOOKING_WEBHOOK_URL ||
-          CONFIG.N8N_WEBHOOK_URL)
-          ? String(
-              CONFIG.BOOKING_ENDPOINT ||
-                CONFIG.BOOKING_WEBHOOK_URL ||
-                CONFIG.N8N_WEBHOOK_URL
-            ).trim()
-          : "";
+      const endpoint = this.getWebhookEndpoint();
 
-      if (
-        !endpoint ||
-        endpoint.includes("DOMAIN_N8N_KAMU") ||
-        endpoint.includes("<URL-HTTPS-N8N-KAMU>")
-      ) {
+      if (!this.hasValidWebhookEndpoint(endpoint)) {
         this.isSubmittingBooking = false;
         this.showToast(
           "Booking tersimpan lokal (endpoint booking belum diatur).",
@@ -440,16 +447,72 @@ function appData() {
       this.refreshIcons();
     },
 
-    updateMeetingLink(id, link) {
+    updateBookingMode(id, newMode) {
       const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
-      if (target) {
-        target.meetingLink = (link || "").trim();
-        this.bookings = [...this.bookings];
-        this.showToast(
-          target.meetingLink
-            ? "Link Google Meet disimpan."
-            : "Link Google Meet dikosongkan."
-        );
+      if (!target) return;
+
+      const normalizedMode = newMode === "Online" ? "Online" : "Offline";
+      target.mode = normalizedMode;
+      target.platform = normalizedMode === "Online" ? "Google Meet" : "";
+
+      if (normalizedMode === "Offline") {
+        target.meetingLink = "";
+        if (!target.location || target.location.startsWith("Online")) {
+          target.location = "Ruang Konseling";
+        }
+      } else {
+        target.location = "Online (Google Meet)";
+      }
+
+      this.bookings = [...this.bookings];
+      this.showToast(`Mode booking diubah menjadi ${normalizedMode}.`);
+    },
+
+    updateMeetingLink(id, link, notifyWebhook = false) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (!target) return;
+
+      target.mode = "Online";
+      target.platform = "Google Meet";
+      target.location = "Online (Google Meet)";
+      target.meetingLink = (link || "").trim();
+      this.bookings = [...this.bookings];
+
+      this.showToast(
+        target.meetingLink
+          ? "Link Google Meet disimpan."
+          : "Link Google Meet dikosongkan."
+      );
+
+      if (notifyWebhook && target.meetingLink) {
+        this.sendBookingUpdateToWebhook(target, "meeting_link_updated");
+      }
+    },
+
+    async sendBookingUpdateToWebhook(bookingItem, actionType = "booking_updated") {
+      const endpoint = this.getWebhookEndpoint();
+      if (!this.hasValidWebhookEndpoint(endpoint)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ...bookingItem,
+            action: actionType,
+            updatedAt: new Date().toISOString()
+          })
+        });
+
+        if (res.ok) {
+          this.showToast("Detail sesi & link Google Meet terkirim ke server.");
+        }
+      } catch (err) {
+        console.error("Webhook update error:", err);
       }
     },
 
