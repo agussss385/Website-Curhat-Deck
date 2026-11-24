@@ -16,7 +16,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Custom Style -->
+  <!-- Custom Style (sesuaikan path jika styles.css berada di folder lain) -->
   <link rel="stylesheet" href="./assets/css/styles.css">
 
   <!-- Style Maskot CurhatBuddy -->
@@ -30,7 +30,9 @@
     }
   </style>
 
-  <!-- Script Aplikasi (sesuaikan path jika berbeda) -->
+  <!-- Konfigurasi & Script Aplikasi (sesuaikan path jika berada di folder lain) -->
+  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/api.js"></script>
   <script src="./assets/js/app.js"></script>
 
   <!-- Alpine.js (Defer) -->
@@ -150,7 +152,6 @@
                 <circle cx="72.5" cy="83.5" r="3" fill="#FFFFFF"/>
                 <circle cx="110" cy="86" r="8" fill="#FACC15"/>
                 <circle cx="112.5" cy="83.5" r="3" fill="#FFFFFF"/>
-                <!-- Ekspresi mulut berubah sesuai status login -->
                 <path x-show="studentUser" d="M73 104C80 116 100 116 107 104" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
                 <path x-show="!studentUser" d="M78 108C85 112 95 112 102 108" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
                 <rect x="72" y="122" width="36" height="12" rx="6" fill="#67E8F9"/>
