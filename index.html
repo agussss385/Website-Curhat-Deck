@@ -376,7 +376,7 @@
                 <tr>
                   <th class="p-3">No. Seri</th>
                   <th class="p-3">Nama / Prodi</th>
-                  <th class="p-3">Kontak</th>
+                  <th class="p-3">Kontak & Email Tujuan</th>
                   <th class="p-3">Mode & Tempat / Meet</th>
                   <th class="p-3">Jadwal</th>
                   <th class="p-3">Topik Curhat</th>
@@ -392,7 +392,17 @@
                       <div class="font-bold text-white" x-text="item.name"></div>
                       <div class="text-[11px] text-cyan-300" x-text="item.faculty || item.major || '-'"></div>
                     </td>
-                    <td class="p-3 text-slate-300 font-mono text-xs" x-text="item.contact"></td>
+                    <td class="p-3 text-slate-300 font-mono text-xs space-y-1.5 min-w-[200px]">
+                      <div x-text="item.contact || '-'"></div>
+                      <div>
+                        <label class="block text-[10px] uppercase tracking-wider text-amber-300 font-sans font-bold mb-0.5">Email Tujuan</label>
+                        <input type="email"
+                               :value="item.targetEmail || ''"
+                               @change="updateBookingTargetEmail(item.bookingId || item.id, $event.target.value)"
+                               placeholder="email@tujuan.com"
+                               class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-[11px] text-amber-200 placeholder-slate-500 focus:outline-none focus:border-amber-400">
+                      </div>
+                    </td>
                     <td class="p-3 text-xs space-y-2 min-w-[220px]">
                       <select :value="item.mode || 'Offline'"
                               @change="updateBookingMode(item.bookingId || item.id, $event.target.value)"
