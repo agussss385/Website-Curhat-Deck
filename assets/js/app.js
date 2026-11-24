@@ -5,7 +5,7 @@ function appData() {
   };
 
   return {
-    // Navigasi & Role (disesuaikan dengan index.html)
+    // Navigasi & Role
     currentRole: "student", // "student" | "counselor"
     activeTab: "ai-chat",   // "ai-chat" | "booking"
     counselorStatus: "Online",
@@ -14,7 +14,7 @@ function appData() {
     // User Mahasiswa
     studentUser: null,
 
-    // State Chat AI CurhatBuddy (disesuaikan dengan index.html & ai.js)
+    // State Chat AI CurhatBuddy
     userInput: "",
     isAiThinking: false,
     chatMessages: [initialWelcome],
@@ -34,7 +34,7 @@ function appData() {
       topic: ""
     },
 
-    // Toast notification
+    // Toast Notification
     toast: {
       show: false,
       type: "success",
@@ -200,6 +200,9 @@ function appData() {
       }
 
       this.authModal.loginForm.name = name;
+      if (email) {
+        this.authModal.registerForm.email = email;
+      }
       if (faculty) {
         this.bookingForm.faculty = faculty;
       }
@@ -304,6 +307,10 @@ function appData() {
       );
     },
 
+    isValidEmail(val) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val || "").trim());
+    },
+
     async submitBooking() {
       if (!this.ensureStudentLoggedIn("jadwal booking konseling")) return;
       if (this.isSubmittingBooking) return;
@@ -329,7 +336,7 @@ function appData() {
 
       this.isSubmittingBooking = true;
 
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+      const isEmail = this.isValidEmail(contact);
       const phoneDigits = contact.replace(/\D/g, "");
       const isWa = !isEmail && phoneDigits.length >= 8;
 
@@ -350,6 +357,10 @@ function appData() {
         notifText = "notifikasi WA diproses";
       }
 
+      const targetEmail = isEmail
+        ? contact
+        : (this.studentUser?.email || "").trim();
+
       const timestampId = Date.now();
       const bookingId = String(timestampId);
       const schedule = `${date}${date && time ? " " : ""}${time ? `(${time} WIB)` : ""}`.trim();
@@ -366,6 +377,7 @@ function appData() {
         name,
         contact,
         contactType,
+        targetEmail,
         faculty,
         major: faculty,
         mode,
@@ -447,6 +459,20 @@ function appData() {
       this.refreshIcons();
     },
 
+    updateBookingTargetEmail(id, email) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (!target) return;
+
+      const cleaned = (email || "").trim();
+      target.targetEmail = cleaned;
+      this.bookings = [...this.bookings];
+      this.showToast(
+        cleaned
+          ? `Email tujuan diubah ke ${cleaned}`
+          : "Email tujuan dikosongkan."
+      );
+    },
+
     updateBookingMode(id, newMode) {
       const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
       if (!target) return;
@@ -484,7 +510,7 @@ function appData() {
           : "Link Google Meet dikosongkan."
       );
 
-      if (notifyWebhook && target.meetingLink) {
+      if (notifyWebhook) {
         this.sendBookingUpdateToWebhook(target, "meeting_link_updated");
       }
     },
@@ -492,8 +518,19 @@ function appData() {
     async sendBookingUpdateToWebhook(bookingItem, actionType = "booking_updated") {
       const endpoint = this.getWebhookEndpoint();
       if (!this.hasValidWebhookEndpoint(endpoint)) {
+        this.showToast(
+          "Perubahan tersimpan lokal (endpoint booking belum diatur).",
+          "error"
+        );
         return;
       }
+
+      const effectiveEmail = (
+        bookingItem.targetEmail ||
+        (this.isValidEmail(bookingItem.contact) ? bookingItem.contact : "") ||
+        bookingItem.studentEmail ||
+        ""
+      ).trim();
 
       try {
         const res = await fetch(endpoint, {
@@ -503,16 +540,28 @@ function appData() {
           },
           body: JSON.stringify({
             ...bookingItem,
+            targetEmail: effectiveEmail,
             action: actionType,
             updatedAt: new Date().toISOString()
           })
         });
 
-        if (res.ok) {
-          this.showToast("Detail sesi & link Google Meet terkirim ke server.");
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.error || `HTTP ${res.status}`);
         }
+
+        this.showToast(
+          effectiveEmail
+            ? `Data & link Google Meet dikirim ke ${effectiveEmail}`
+            : "Data booking diperbarui ke server."
+        );
       } catch (err) {
         console.error("Webhook update error:", err);
+        this.showToast(
+          "Gagal mengirim pembaruan ke server n8n.",
+          "error"
+        );
       }
     },
 
