@@ -1,54 +1,56 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY belum diatur di server' });
-  }
-
+// Gemini AI API Client (aman: tanpa API key di frontend)
+async function fetchGeminiResponse(chatHistory) {
   try {
-    const { messages = [], contents: rawContents, systemInstruction = '' } = req.body || {};
+    const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.AI_CHAT_ENDPOINT)
+      ? CONFIG.AI_CHAT_ENDPOINT.trim()
+      : '/api/chat';
 
-    const contents = Array.isArray(rawContents) && rawContents.length > 0
-      ? rawContents
-      : messages.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        }));
+    const contents = (Array.isArray(chatHistory) ? chatHistory : []).map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }]
+    }));
 
-    const model = 'gemini-2.5-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const systemInstructionText = (typeof CONFIG !== 'undefined' && CONFIG.SYSTEM_INSTRUCTION)
+      ? CONFIG.SYSTEM_INSTRUCTION
+      : '';
 
-    const payload = {
-      contents,
-      ...(systemInstruction
-        ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
-        : {})
-    };
-
-    const geminiRes = await fetch(url, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        messages: chatHistory,
+        contents,
+        systemInstruction: systemInstructionText
+      })
     });
 
-    const geminiData = await geminiRes.json();
-
-    if (!geminiRes.ok) {
-      return res.status(geminiRes.status).json({
-        error: geminiData?.error?.message || 'Permintaan ke Gemini API gagal'
-      });
+    if (!response.ok) {
+      let errDetail = `HTTP ${response.status}`;
+      try {
+        const errData = await response.json();
+        if (errData?.error) errDetail += `: ${errData.error}`;
+      } catch (_) {
+        // Abaikan jika body error bukan JSON
+      }
+      throw new Error(`Gagal terhubung ke server Gemini AI (${errDetail}).`);
     }
 
-    const reply =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      'Maaf, aku belum bisa merangkai balasan sekarang.';
+    const data = await response.json();
 
-    return res.status(200).json({ reply });
+    // Mendukung format balasan umum: { reply }, { text }, atau struktur candidates Gemini
+    const replyText =
+      data?.reply ||
+      data?.text ||
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      '';
+
+    if (!replyText) {
+      throw new Error('Balasan AI kosong.');
+    }
+
+    return replyText;
   } catch (err) {
-    console.error('Server /api/chat error:', err);
-    return res.status(500).json({ error: 'Terjadi kesalahan pada server AI' });
+    console.error('Gemini API Error:', err);
+    throw err;
   }
 }
