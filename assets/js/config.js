@@ -1,6 +1,10 @@
 // Configuration File
 const CONFIG = {
-  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook/booking-konselor",
+  // Endpoint internal Vercel (bebas CORS & tidak bergantung ke localhost:5678)
+  AI_CHAT_ENDPOINT: "/api/chat",
+  BOOKING_ENDPOINT: "/api/booking",
+  BOOKING_WEBHOOK_URL: "/api/booking",
+  REQUEST_TIMEOUT_MS: 25000,
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di Polimedia (Politeknik Negeri Media Kreatif) pada platform CurhatDeck.
@@ -12,3 +16,5 @@ Aturan respon kamu:
 5. Jawab secara ringkas, to the point, dan tidak kaku seperti guru atau dosen.
 6. Jika ada indikasi krisis berat atau menyakiti diri sendiri, selalu sarankan dengan lembut untuk memanfaatkan tombol SOS Hotline atau booking sesi 1-on-1 dengan konselor.`
 };
+
+window.CONFIG = CONFIG;
