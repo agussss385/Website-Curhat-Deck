@@ -250,8 +250,8 @@ function appData() {
     },
 
     getWebhookEndpoint() {
-      // Opsional: isi URL Production Webhook n8n jika CONFIG belum terbaca
-      const FALLBACK_WEBHOOK_URL = "";
+      // Ganti dengan URL Production Webhook n8n kamu yang asli
+      const FALLBACK_WEBHOOK_URL = "https://URL-WEBHOOK-N8N-KAMU";
 
       const cfg =
         typeof window !== "undefined" && window.CONFIG
@@ -280,6 +280,7 @@ function appData() {
       if (!/^https?:\/\//i.test(url)) return false;
       if (url.includes("<URL-HTTPS-N8N-KAMU>")) return false;
       if (url.includes("YOUR_N8N_WEBHOOK")) return false;
+      if (url === "https://URL-WEBHOOK-N8N-KAMU") return false;
       return true;
     },
 
