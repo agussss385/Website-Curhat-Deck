@@ -250,8 +250,8 @@ function appData() {
     },
 
     getWebhookEndpoint() {
-      // Isi URL Production Webhook n8n di bawah ini agar tetap terkirim meskipun CONFIG belum terbaca
-      const FALLBACK_WEBHOOK_URL = "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
+      // Opsional: isi URL Production Webhook n8n jika CONFIG belum terbaca
+      const FALLBACK_WEBHOOK_URL = "";
 
       const cfg =
         typeof window !== "undefined" && window.CONFIG
@@ -278,7 +278,6 @@ function appData() {
       const url = String(endpoint || "").trim();
       if (!url) return false;
       if (!/^https?:\/\//i.test(url)) return false;
-      if (url.includes("DOMAIN_N8N_KAMU")) return false;
       if (url.includes("<URL-HTTPS-N8N-KAMU>")) return false;
       if (url.includes("YOUR_N8N_WEBHOOK")) return false;
       return true;
@@ -303,10 +302,12 @@ function appData() {
       const platform = mode === "Online" ? "Google Meet" : "";
       const rawLocation = (this.bookingForm?.location || "").trim();
       const date = this.bookingForm?.date || "";
-      const time = (this.bookingForm?.time || "").trim();
+      const cleanTime = String(this.bookingForm?.time || "")
+        .replace(/\s*WIB\s*/gi, "")
+        .trim();
       const topic = (this.bookingForm?.topic || "").trim();
 
-      if (!name || (!date && !time)) {
+      if (!name || (!date && !cleanTime)) {
         this.showToast("Lengkapi nama dan jadwal sesi terlebih dahulu!", "error");
         return;
       }
@@ -341,8 +342,8 @@ function appData() {
 
       const timestampId = Date.now();
       const bookingId = String(timestampId);
-      const schedule = `${date}${date && time ? " " : ""}${
-        time ? `(${time} WIB)` : ""
+      const schedule = `${date}${date && cleanTime ? " " : ""}${
+        cleanTime ? `(${cleanTime} WIB)` : ""
       }`.trim();
 
       const location =
@@ -365,7 +366,7 @@ function appData() {
         meetingLink: "",
         location,
         date,
-        time,
+        time: cleanTime ? `${cleanTime} WIB` : "",
         schedule,
         topic,
         studentEmail: this.studentUser?.email || "",
@@ -478,15 +479,21 @@ function appData() {
       const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
       if (!target) return;
 
+      const cleanedLink = (link || "").trim();
       target.mode = "Online";
       target.platform = "Google Meet";
       target.location = "Online (Google Meet)";
-      target.meetingLink = (link || "").trim();
+      target.meetingLink = cleanedLink;
+
+      if (cleanedLink && target.status === "Pending") {
+        target.status = "Disetujui";
+      }
+
       this.bookings = [...this.bookings];
 
       this.showToast(
-        target.meetingLink
-          ? "Link Google Meet disimpan."
+        cleanedLink
+          ? "Link Google Meet disimpan & status menjadi Disetujui."
           : "Link Google Meet dikosongkan."
       );
 
