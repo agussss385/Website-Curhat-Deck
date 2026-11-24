@@ -19,6 +19,17 @@
   <!-- Custom Style -->
   <link rel="stylesheet" href="./assets/css/styles.css">
 
+  <!-- Style Maskot CurhatBuddy -->
+  <style>
+    @keyframes buddyFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .curhat-buddy-float {
+      animation: buddyFloat 3s ease-in-out infinite;
+    }
+  </style>
+
   <!-- Alpine.js (Defer) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -101,27 +112,54 @@
     <!-- MODE MAHASISWA -->
     <template x-if="currentRole === 'student'">
       <div class="space-y-6">
-        <!-- Hero Banner -->
+        <!-- Hero Banner + Maskot CurhatBuddy -->
         <section class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl p-6 sm:p-10 border-4 border-black shadow-[6px_6px_0px_0px_#000] text-black relative overflow-hidden">
-          <div class="max-w-2xl relative z-10">
-            <span class="bg-yellow-300 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black inline-block mb-3 uppercase tracking-wider">No Judgment Zone 🤫</span>
-            <h2 class="text-3xl sm:text-5xl font-black font-space leading-tight mb-3">Isi Kepala Lagi Penuh & Overthinking?</h2>
-            <p class="text-slate-900 font-semibold text-base sm:text-lg mb-6">Tumpahin semua di sini. Ngobrol bareng Gemini AI 24/7 atau request sesi curhat 1-on-1 langsung bareng konselor.</p>
+          <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div class="max-w-2xl">
+              <span class="bg-yellow-300 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black inline-block mb-3 uppercase tracking-wider">No Judgment Zone 🤫</span>
+              <h2 class="text-3xl sm:text-5xl font-black font-space leading-tight mb-3">Isi Kepala Lagi Penuh & Overthinking?</h2>
+              <p class="text-slate-900 font-semibold text-base sm:text-lg mb-6">Tumpahin semua di sini. Ngobrol bareng Gemini AI 24/7 atau request sesi curhat 1-on-1 langsung bareng konselor.</p>
 
-            <div class="flex flex-wrap gap-3">
-              <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
-                <i data-lucide="bot" class="w-5 h-5"></i>
-                Curhat ke Gemini AI
-              </button>
-              <button type="button" @click="activeTab = 'booking'; refreshIcons()" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
-                <i data-lucide="calendar" class="w-5 h-5"></i>
-                Booking Sesi 1-on-1
-              </button>
+              <div class="flex flex-wrap gap-3">
+                <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+                  <i data-lucide="bot" class="w-5 h-5"></i>
+                  Curhat ke Gemini AI
+                </button>
+                <button type="button" @click="activeTab = 'booking'; refreshIcons()" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+                  <i data-lucide="calendar" class="w-5 h-5"></i>
+                  Booking Sesi 1-on-1
+                </button>
+              </div>
+            </div>
+
+            <!-- Maskot CurhatBuddy -->
+            <div class="flex-shrink-0 bg-slate-900 text-white border-4 border-black rounded-3xl p-4 shadow-[5px_5px_0px_0px_#000] flex flex-col items-center gap-2">
+              <svg viewBox="0 0 180 180" class="w-28 h-28 sm:w-32 sm:h-32 curhat-buddy-float" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="90" cy="95" r="62" fill="#7C3AED" fill-opacity="0.25"/>
+                <circle cx="90" cy="95" r="46" fill="#FACC15" fill-opacity="0.14"/>
+                <path d="M46 58C34 44 38 26 52 32C61 36 63 48 60 56" fill="#EC4899" stroke="#FBCFE8" stroke-width="3" stroke-linecap="round"/>
+                <path d="M134 58C146 44 142 26 128 32C119 36 117 48 120 56" fill="#EC4899" stroke="#FBCFE8" stroke-width="3" stroke-linecap="round"/>
+                <rect x="38" y="46" width="104" height="96" rx="44" fill="#1E1B4B" stroke="#F472B6" stroke-width="3.5"/>
+                <rect x="46" y="54" width="88" height="80" rx="37" fill="#2E1065"/>
+                <ellipse cx="62" cy="102" rx="9" ry="5.5" fill="#F472B6" fill-opacity="0.6"/>
+                <ellipse cx="118" cy="102" rx="9" ry="5.5" fill="#F472B6" fill-opacity="0.6"/>
+                <circle cx="70" cy="86" r="8" fill="#FACC15"/>
+                <circle cx="72.5" cy="83.5" r="3" fill="#FFFFFF"/>
+                <circle cx="110" cy="86" r="8" fill="#FACC15"/>
+                <circle cx="112.5" cy="83.5" r="3" fill="#FFFFFF"/>
+                <!-- Ekspresi mulut berubah sesuai status login -->
+                <path x-show="studentUser" d="M73 104C80 116 100 116 107 104" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
+                <path x-show="!studentUser" d="M78 108C85 112 95 112 102 108" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
+                <rect x="72" y="122" width="36" height="12" rx="6" fill="#67E8F9"/>
+                <circle cx="90" cy="128" r="3" fill="#1E1B4B"/>
+              </svg>
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-slate-800 border-2 border-black text-cyan-300 text-center"
+                    x-text="studentUser ? `Halo ${studentUser.name}! CurhatBuddy siap` : 'CurhatBuddy • Login dulu ya'"></span>
             </div>
           </div>
         </section>
 
-      <!-- Navigation Tabs -->
+        <!-- Navigation Tabs -->
         <div class="flex gap-2 border-b-2 border-slate-800 pb-2 overflow-x-auto">
           <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" :class="activeTab === 'ai-chat' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
             <i data-lucide="sparkles" class="w-4 h-4"></i> AI Peer Counselor
@@ -131,92 +169,109 @@
           </button>
         </div>
 
-        <!-- TAB 1: Gemini AI Chat -->
-        <div x-show="activeTab === 'ai-chat'" class="bg-slate-900 border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000] flex flex-col h-[600px] overflow-hidden">
-          <div class="bg-slate-800 p-4 border-b-2 border-black flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black font-bold">
-                <i data-lucide="bot" class="w-5 h-5"></i>
+        <!-- TAB 1: Gemini AI Chat (Terkunci sebelum login) -->
+        <div x-show="activeTab === 'ai-chat'" class="relative bg-slate-900 border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000] flex flex-col h-[600px] overflow-hidden">
+          <div class="flex-1 flex flex-col overflow-hidden transition-all" :class="!studentUser ? 'blur-[2px] opacity-40 pointer-events-none select-none' : ''">
+            <div class="bg-slate-800 p-4 border-b-2 border-black flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black font-bold">
+                  <i data-lucide="bot" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-sm text-cyan-300">CurhatBuddy (Gemini AI)</h3>
+                  <span class="text-[11px] text-slate-400">Siap dengerin 24/7 tanpa nge-judge</span>
+                </div>
               </div>
-              <div>
-                <h3 class="font-bold text-sm text-cyan-300">CurhatBuddy (Gemini AI)</h3>
-                <span class="text-[11px] text-slate-400">Siap dengerin 24/7 tanpa nge-judge</span>
-              </div>
+              <button type="button" :disabled="!studentUser" @click="clearChat()" class="text-xs text-red-400 hover:underline flex items-center gap-1 font-semibold">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Chat
+              </button>
             </div>
-            <button type="button" @click="clearChat()" class="text-xs text-red-400 hover:underline flex items-center gap-1 font-semibold">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Chat
-            </button>
-          </div>
 
-          <!-- Quick Prompts -->
-          <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
-            <span class="text-slate-500 font-bold whitespace-nowrap">Topic Quick-Pick:</span>
-            <button type="button" @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi & Deadline</button>
-            <button type="button" @click="sendQuickPrompt('Lagi kena creative block dan burnout pas ngerjain karya/portofolio')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎨 Creative Block</button>
-            <button type="button" @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang & Future Anxiety</button>
-          </div>
+            <!-- Quick Prompts -->
+            <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
+              <span class="text-slate-500 font-bold whitespace-nowrap">Topic Quick-Pick:</span>
+              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi & Deadline</button>
+              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Lagi kena creative block dan burnout pas ngerjain karya/portofolio')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎨 Creative Block</button>
+              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang & Future Anxiety</button>
+            </div>
 
-          <!-- Chat History Window -->
-          <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4">
-            <template x-for="(msg, index) in chatMessages" :key="index">
-              <div class="flex gap-3" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-                <div x-show="msg.role === 'model'" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex-shrink-0 flex items-center justify-center text-black font-bold">
+            <!-- Chat History Window -->
+            <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4">
+              <template x-for="(msg, index) in chatMessages" :key="index">
+                <div class="flex gap-3" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+                  <div x-show="msg.role === 'model'" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex-shrink-0 flex items-center justify-center text-black font-bold">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                  </div>
+                  <div class="max-w-[80%] rounded-2xl p-4 border-2 border-black text-sm leading-relaxed"
+                       :class="msg.role === 'user' ? 'bg-pink-500 text-black font-medium shadow-[3px_3px_0px_0px_#000]' : 'bg-slate-800 text-slate-100 shadow-[3px_3px_0px_0px_#000]'">
+                    <p class="whitespace-pre-line" x-text="msg.text"></p>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Loading Indicator -->
+              <div x-show="isAiThinking" class="flex gap-3 justify-start">
+                <div class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black">
                   <i data-lucide="bot" class="w-4 h-4"></i>
                 </div>
-                <div class="max-w-[80%] rounded-2xl p-4 border-2 border-black text-sm leading-relaxed"
-                     :class="msg.role === 'user' ? 'bg-pink-500 text-black font-medium shadow-[3px_3px_0px_0px_#000]' : 'bg-slate-800 text-slate-100 shadow-[3px_3px_0px_0px_#000]'">
-                  <p class="whitespace-pre-line" x-text="msg.text"></p>
+                <div class="bg-slate-800 border-2 border-black rounded-2xl p-4 text-xs font-mono text-cyan-300 animate-pulse">
+                  CurhatBuddy lagi ngetik balesan... ✍️
                 </div>
               </div>
-            </template>
-
-            <!-- Loading Indicator -->
-            <div x-show="isAiThinking" class="flex gap-3 justify-start">
-              <div class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black">
-                <i data-lucide="bot" class="w-4 h-4"></i>
-              </div>
-              <div class="bg-slate-800 border-2 border-black rounded-2xl p-4 text-xs font-mono text-cyan-300 animate-pulse">
-                CurhatBuddy lagi ngetik balesan... ✍️
-              </div>
             </div>
+
+            <!-- Chat Input -->
+            <form @submit.prevent="if (!studentUser) { openAuthModal('login'); return; } sendChatMessage()" class="p-4 bg-slate-800 border-t-2 border-black flex gap-2">
+              <input type="text" :disabled="!studentUser" x-model="userInput" placeholder="Tumpahin unek-unek kamu di sini..." class="flex-1 bg-slate-900 border-2 border-black rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink-400 text-white placeholder-slate-500 disabled:opacity-60">
+              <button type="submit" :disabled="!studentUser || isAiThinking || !userInput.trim()" class="px-5 py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] disabled:opacity-50 flex items-center justify-center">
+                <i data-lucide="send" class="w-5 h-5"></i>
+              </button>
+            </form>
           </div>
 
-          <!-- Chat Input -->
-          <form @submit.prevent="sendChatMessage()" class="p-4 bg-slate-800 border-t-2 border-black flex gap-2">
-            <input type="text" x-model="userInput" placeholder="Tumpahin unek-unek kamu di sini..." class="flex-1 bg-slate-900 border-2 border-black rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink-400 text-white placeholder-slate-500">
-            <button type="submit" :disabled="isAiThinking || !userInput.trim()" class="px-5 py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] disabled:opacity-50 flex items-center justify-center">
-              <i data-lucide="send" class="w-5 h-5"></i>
+          <!-- Overlay Kunci Chat AI Sebelum Login -->
+          <div x-show="!studentUser" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center space-y-4">
+            <span class="px-3 py-1 rounded-full bg-yellow-300 text-black text-xs font-black border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+              🔒 Chat AI Terkunci
+            </span>
+            <h4 class="text-xl sm:text-2xl font-black font-space text-white">Login Dulu Buat Ngobrol Sama CurhatBuddy</h4>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-md">
+              Masuk dengan akun mahasiswa kamu dulu supaya bisa kirim pesan curhat ke AI dan nyimpen sesi obrolanmu.
+            </p>
+            <button type="button" @click="openAuthModal('login')" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-black rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2 text-sm">
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              Masuk / Daftar Sekarang
             </button>
-          </form>
+          </div>
         </div>
 
-        <!-- TAB 2: Booking Form -->
-        <div x-show="activeTab === 'booking'" class="bg-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 shadow-[6px_6px_0px_0px_#000]">
-          <div class="max-w-xl mx-auto space-y-6">
+        <!-- TAB 2: Booking Form (Terkunci sebelum login) -->
+        <div x-show="activeTab === 'booking'" class="relative bg-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 shadow-[6px_6px_0px_0px_#000] overflow-hidden">
+          <div class="max-w-xl mx-auto space-y-6 transition-all" :class="!studentUser ? 'blur-[2px] opacity-40 pointer-events-none select-none' : ''">
             <div>
               <h3 class="text-2xl font-black font-space text-pink-400">Booking Sesi Curhat 1-on-1</h3>
               <p class="text-slate-400 text-sm mt-1">Jadwalkan sesi konsultasi langsung dengan konselor. Identitas kamu aman & terjaga privasinya.</p>
             </div>
 
-            <form @submit.prevent="submitBooking()" class="space-y-4">
+            <form @submit.prevent="if (!studentUser) { openAuthModal('login'); return; } submitBooking()" class="space-y-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama / Inisial (Anonim Boleh)</label>
-                <input type="text" x-model="bookingForm.name" required placeholder="Contoh: Raka / Prodi Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                <input type="text" :disabled="!studentUser" x-model="bookingForm.name" required placeholder="Contoh: Raka / Prodi Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
               </div>
 
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kontak WhatsApp / Email</label>
-                <input type="text" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                <input type="text" :disabled="!studentUser" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Pilih Tanggal</label>
-                  <input type="date" x-model="bookingForm.date" required class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                  <input type="date" :disabled="!studentUser" x-model="bookingForm.date" required class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
                 </div>
                 <div>
                   <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Pilih Jam Sesi</label>
-                  <select x-model="bookingForm.time" required class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                  <select :disabled="!studentUser" x-model="bookingForm.time" required class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
                     <option value="">-- Pilih Jam --</option>
                     <option value="10:00 WIB">10:00 WIB</option>
                     <option value="13:00 WIB">13:00 WIB</option>
@@ -228,13 +283,28 @@
 
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Gambaran Singkat Hal yang Ingin Dicurhatkan</label>
-                <textarea x-model="bookingForm.topic" rows="3" required placeholder="Ceritain sedikit yang lagi dirasain (revisi menumpuk, burnout karya, dll)..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white"></textarea>
+                <textarea :disabled="!studentUser" x-model="bookingForm.topic" rows="3" required placeholder="Ceritain sedikit yang lagi dirasain (revisi menumpuk, burnout karya, dll)..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60"></textarea>
               </div>
 
-              <button type="submit" :disabled="isSubmittingBooking" class="w-full py-3.5 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-base disabled:opacity-60">
+              <button type="submit" :disabled="!studentUser || isSubmittingBooking" class="w-full py-3.5 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-base disabled:opacity-60">
                 <span x-text="isSubmittingBooking ? 'Mengirim Permintaan...' : 'Kirim Permintaan Booking 🚀'"></span>
               </button>
             </form>
+          </div>
+
+          <!-- Overlay Kunci Jadwal Booking Sebelum Login -->
+          <div x-show="!studentUser" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center space-y-4">
+            <span class="px-3 py-1 rounded-full bg-pink-500 text-black text-xs font-black border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+              🔒 Jadwal Booking Terkunci
+            </span>
+            <h4 class="text-xl sm:text-2xl font-black font-space text-white">Login Dulu Buat Mengatur Jadwal Konseling</h4>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-md">
+              Silakan login akun mahasiswa terlebih dahulu agar kamu bisa mengajukan jadwal sesi 1-on-1 bersama konselor.
+            </p>
+            <button type="button" @click="openAuthModal('login')" class="px-6 py-3 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2 text-sm">
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              Masuk / Daftar Sekarang
+            </button>
           </div>
         </div>
       </div>
@@ -296,7 +366,7 @@
                     <td class="p-3 text-right space-x-1">
                       <button type="button" x-show="item.status === 'Pending'" @click="updateBookingStatus(item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
                       <button type="button" x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
-                      <button type="button" @click="deleteBooking(item.id)" class="px-2 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
+                      <button type="button" @click="deleteBooking(item.id)" class="px-2.5 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
                     </td>
                   </tr>
                 </template>
