@@ -250,24 +250,38 @@ function appData() {
     },
 
     getWebhookEndpoint() {
-      return typeof CONFIG !== "undefined" &&
-        (CONFIG.BOOKING_ENDPOINT ||
-          CONFIG.BOOKING_WEBHOOK_URL ||
-          CONFIG.N8N_WEBHOOK_URL)
-        ? String(
-            CONFIG.BOOKING_ENDPOINT ||
-              CONFIG.BOOKING_WEBHOOK_URL ||
-              CONFIG.N8N_WEBHOOK_URL
-          ).trim()
-        : "";
+      // Isi URL Production Webhook n8n di bawah ini agar tetap terkirim meskipun CONFIG belum terbaca
+      const FALLBACK_WEBHOOK_URL = "";
+
+      const cfg =
+        typeof window !== "undefined" && window.CONFIG
+          ? window.CONFIG
+          : typeof CONFIG !== "undefined"
+            ? CONFIG
+            : {};
+
+      const rawUrl =
+        cfg.BOOKING_ENDPOINT ||
+        cfg.BOOKING_WEBHOOK_URL ||
+        cfg.N8N_WEBHOOK_URL ||
+        cfg.WEBHOOK_URL ||
+        cfg.bookingEndpoint ||
+        cfg.bookingWebhookUrl ||
+        cfg.n8nWebhookUrl ||
+        FALLBACK_WEBHOOK_URL ||
+        "";
+
+      return String(rawUrl).trim();
     },
 
     hasValidWebhookEndpoint(endpoint) {
-      return (
-        Boolean(endpoint) &&
-        !endpoint.includes("DOMAIN_N8N_KAMU") &&
-        !endpoint.includes("<URL-HTTPS-N8N-KAMU>")
-      );
+      const url = String(endpoint || "").trim();
+      if (!url) return false;
+      if (!/^https?:\/\//i.test(url)) return false;
+      if (url.includes("DOMAIN_N8N_KAMU")) return false;
+      if (url.includes("<URL-HTTPS-N8N-KAMU>")) return false;
+      if (url.includes("YOUR_N8N_WEBHOOK")) return false;
+      return true;
     },
 
     isValidEmail(val) {
@@ -534,6 +548,7 @@ function appData() {
         target.status = newStatus;
         this.bookings = [...this.bookings];
         this.showToast(`Status booking diubah menjadi ${newStatus}`);
+        this.sendBookingUpdateToWebhook(target, "status_updated");
       }
     },
 
