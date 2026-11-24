@@ -1,300 +1,572 @@
-// Ganti dengan URL Production Webhook n8n milikmu
-const N8N_WEBHOOK_URL = "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
-const STORAGE_KEY = "curhatdeck_counseling_items_v1";
-
-let items = readItems();
-
-const tabStudent = document.getElementById("tab-student");
-const tabCounselor = document.getElementById("tab-counselor");
-const panelStudent = document.getElementById("panel-student");
-const panelCounselor = document.getElementById("panel-counselor");
-
-const bookingForm = document.getElementById("student-booking-form");
-const modeInput = document.getElementById("input-mode");
-const locationInput = document.getElementById("input-location");
-const counselorList = document.getElementById("counselor-list");
-const studentAlert = document.getElementById("student-alert");
-const counselorAlert = document.getElementById("counselor-alert");
-
-tabStudent.addEventListener("click", () => {
-  tabStudent.classList.add("active");
-  tabCounselor.classList.remove("active");
-  panelStudent.classList.remove("hidden");
-  panelCounselor.classList.add("hidden");
-});
-
-tabCounselor.addEventListener("click", () => {
-  tabCounselor.classList.add("active");
-  tabStudent.classList.remove("active");
-  panelCounselor.classList.remove("hidden");
-  panelStudent.classList.add("hidden");
-  renderCounselorList();
-});
-
-modeInput.addEventListener("change", () => {
-  if (modeInput.value === "Online") {
-    locationInput.value = "Online (Google Meet)";
-  } else if (locationInput.value === "Online (Google Meet)") {
-    locationInput.value = "Ruang Konseling";
-  }
-});
-
-bookingForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const bookingId = String(Date.now());
-  const name = document.getElementById("input-name").value.trim();
-  const email = document.getElementById("input-email").value.trim();
-  const faculty = document.getElementById("input-faculty").value.trim();
-  const mode = modeInput.value === "Online" ? "Online" : "Offline";
-  const date = document.getElementById("input-date").value.trim();
-  const cleanTime = document
-    .getElementById("input-time")
-    .value.trim()
-    .replace(/\s*WIB\s*/gi, "")
-    .trim();
-  const location =
-    locationInput.value.trim() ||
-    (mode === "Online" ? "Online (Google Meet)" : "Ruang Konseling");
-  const topic = document.getElementById("input-topic").value.trim();
-
-  const schedule =
-    `${date}${date && cleanTime ? " " : ""}${
-      cleanTime ? `(${cleanTime} WIB)` : ""
-    }`.trim() || "-";
-
-  const entry = {
-    action: "booking_created",
-    bookingId,
-    name,
-    contact: email,
-    targetEmail: email,
-    faculty,
-    mode,
-    date,
-    time: cleanTime,
-    schedule,
-    location,
-    meetingLink: "",
-    topic,
-    status: "Pending"
+function appData() {
+  const initialWelcome = {
+    role: "model",
+    text: "Halo! Aku CurhatBuddy 🫂 Ada unek-unek soal kuliah, revisi, deadline, atau hal lain yang lagi bikin kepikiran? Cerita aja di sini, no judgment ya!"
   };
 
-  items.unshift(entry);
-  writeItems();
-  renderCounselorList();
-  bookingForm.reset();
-  locationInput.value = "Online (Google Meet)";
+  return {
+    // Navigasi & Role
+    currentRole: "student", // "student" | "counselor"
+    activeTab: "ai-chat",   // "ai-chat" | "booking"
+    counselorStatus: "Online",
+    showSosModal: false,
 
-  try {
-    await postToWebhook(entry);
-    showAlert(
-      studentAlert,
-      `Booking #${bookingId} berhasil dikirim. Menunggu konfirmasi & link dari konselor.`,
-      "success"
-    );
-  } catch (err) {
-    showAlert(
-      studentAlert,
-      `Booking #${bookingId} tersimpan, tetapi gagal mengirim ke webhook: ${err.message}`,
-      "error"
-    );
-  }
-});
+    // User Mahasiswa
+    studentUser: null,
 
-function renderCounselorList() {
-  if (!items.length) {
-    counselorList.innerHTML =
-      '<div class="empty-state">Belum ada booking masuk. Silakan buat booking dari tab Mahasiswa.</div>';
-    return;
-  }
+    // State Chat AI CurhatBuddy
+    userInput: "",
+    isAiThinking: false,
+    chatMessages: [initialWelcome],
 
-  counselorList.innerHTML = items
-    .map((item) => {
-      const approved = String(item.status).toLowerCase() === "disetujui";
-      const badgeClass = approved ? "status-approved" : "status-pending";
-      const modeVal = item.mode === "Online" ? "Online" : "Offline";
+    // State Booking Konseling
+    isSubmittingBooking: false,
+    bookings: [],
+    bookingForm: {
+      name: "",
+      contact: "",
+      faculty: "",
+      mode: "Offline", // "Offline" | "Online"
+      platform: "Google Meet",
+      location: "",
+      date: "",
+      time: "",
+      topic: ""
+    },
 
-      return `
-        <article class="booking-card" data-booking-id="${escapeAttr(item.bookingId)}">
-          <div class="booking-top">
-            <span class="booking-id">#${escapeHtml(item.bookingId)}</span>
-            <span class="status-pill ${badgeClass}">${escapeHtml(item.status || "Pending")}</span>
-          </div>
+    // Toast Notification
+    toast: {
+      show: false,
+      type: "success",
+      message: "",
+      _timer: null
+    },
 
-          <div class="booking-meta">
-            <div><strong>Nama:</strong> ${escapeHtml(item.name)}</div>
-            <div><strong>Email:</strong> ${escapeHtml(item.targetEmail || item.contact || "-")}</div>
-            <div><strong>Jurusan / Prodi:</strong> ${escapeHtml(item.faculty)}</div>
-            <div><strong>Mode:</strong> ${escapeHtml(modeVal)}</div>
-            <div><strong>Jadwal:</strong> ${escapeHtml(item.schedule)}</div>
-            <div>
-              <strong>Link Meet:</strong>
-              ${
-                item.meetingLink
-                  ? `<a href="${escapeAttr(item.meetingLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.meetingLink)}</a>`
-                  : "<em>Belum diisi</em>"
-              }
-            </div>
-          </div>
+    // Modal Login / Register
+    authModal: {
+      isOpen: false,
+      mode: "login",
+      loginForm: {
+        name: "",
+        password: ""
+      },
+      registerForm: {
+        name: "",
+        email: "",
+        faculty: "",
+        password: ""
+      }
+    },
 
-          <div class="booking-topic"><strong>Topik:</strong> ${escapeHtml(item.topic)}</div>
+    init() {
+      this.refreshIcons();
+      this.scrollChatToBottom();
+    },
 
-          <div class="meet-bar">
-            <select class="row-mode-select" data-id="${escapeAttr(item.bookingId)}">
-              <option value="Online" ${modeVal === "Online" ? "selected" : ""}>Online</option>
-              <option value="Offline" ${modeVal === "Offline" ? "selected" : ""}>Offline</option>
-            </select>
+    ensureStudentLoggedIn(featureLabel = "fitur ini") {
+      if (this.studentUser) {
+        return true;
+      }
+      this.showToast(
+        `Silakan login terlebih dahulu untuk memakai ${featureLabel}.`,
+        "error"
+      );
+      this.openAuthModal("login");
+      return false;
+    },
 
-            <input
-              type="url"
-              class="row-meet-input"
-              data-id="${escapeAttr(item.bookingId)}"
-              placeholder="Tempel link Google Meet di sini (https://meet.google.com/...)"
-              value="${escapeAttr(item.meetingLink || "")}"
-            />
+    showToast(message, type = "success") {
+      this.toast.message = message;
+      this.toast.type = type;
+      this.toast.show = true;
 
-            <button
-              type="button"
-              class="btn-save-send"
-              data-id="${escapeAttr(item.bookingId)}"
-            >
-              Simpan & Kirim
-            </button>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-}
+      if (this.toast._timer) {
+        clearTimeout(this.toast._timer);
+      }
 
-counselorList.addEventListener("click", async (event) => {
-  const btn = event.target.closest(".btn-save-send");
-  if (!btn) return;
+      this.toast._timer = setTimeout(() => {
+        this.toast.show = false;
+      }, 3500);
+    },
 
-  const bookingId = btn.getAttribute("data-id");
-  const modeSelect = counselorList.querySelector(
-    `.row-mode-select[data-id="${CSS.escape(bookingId)}"]`
-  );
-  const meetInput = counselorList.querySelector(
-    `.row-meet-input[data-id="${CSS.escape(bookingId)}"]`
-  );
+    refreshIcons() {
+      this.$nextTick(() => {
+        if (window.lucide && typeof window.lucide.createIcons === "function") {
+          window.lucide.createIcons();
+        }
+      });
+    },
 
-  const selectedMode = modeSelect ? modeSelect.value : "Online";
-  const meetingLink = meetInput ? meetInput.value.trim() : "";
+    scrollChatToBottom() {
+      this.$nextTick(() => {
+        const win = document.getElementById("chatWindow");
+        if (win) {
+          win.scrollTop = win.scrollHeight;
+        }
+      });
+    },
 
-  if (selectedMode === "Online" && !meetingLink) {
-    showAlert(
-      counselorAlert,
-      "Tempelkan link Google Meet terlebih dahulu sebelum menekan Simpan & Kirim.",
-      "error"
-    );
-    return;
-  }
+    toggleRoleModal() {
+      this.currentRole = this.currentRole === "student" ? "counselor" : "student";
+      this.showToast(
+        this.currentRole === "counselor"
+          ? "Beralih ke Mode Konselor"
+          : "Beralih ke Mode Mahasiswa"
+      );
+      this.refreshIcons();
+    },
 
-  const target = items.find((row) => String(row.bookingId) === String(bookingId));
-  if (!target) return;
+    openAuthModal(mode = "login") {
+      this.authModal.mode = mode;
+      this.authModal.isOpen = true;
+      this.refreshIcons();
+    },
 
-  target.mode = selectedMode === "Online" ? "Online" : "Offline";
-  target.meetingLink = selectedMode === "Online" ? meetingLink : "";
-  target.location =
-    selectedMode === "Online"
-      ? "Online (Google Meet)"
-      : target.location && target.location !== "Online (Google Meet)"
-      ? target.location
-      : "Ruang Konseling";
-  target.status = "Disetujui";
-  target.action = "meeting_link_updated";
+    closeAuthModal() {
+      this.authModal.isOpen = false;
+    },
 
-  writeItems();
-  renderCounselorList();
+    loginStudent() {
+      const name = (this.authModal.loginForm.name || "").trim();
+      if (!name) {
+        this.showToast("Masukkan nama kamu terlebih dahulu!", "error");
+        return;
+      }
 
-  const payload = {
-    action: target.action,
-    bookingId: target.bookingId,
-    name: target.name,
-    contact: target.contact,
-    targetEmail: target.targetEmail || target.contact,
-    faculty: target.faculty,
-    mode: target.mode,
-    meetingLink: target.meetingLink,
-    location: target.location,
-    date: target.date || "",
-    time: target.time || "",
-    schedule: target.schedule,
-    topic: target.topic,
-    status: target.status
+      const registeredFaculty = (this.authModal.registerForm.faculty || "").trim();
+      const registeredEmail = (this.authModal.registerForm.email || "").trim();
+
+      this.studentUser = {
+        name,
+        email:
+          registeredEmail ||
+          `${name.toLowerCase().replace(/\s+/g, ".")}@polimedia.ac.id`,
+        faculty: registeredFaculty || this.studentUser?.faculty || ""
+      };
+
+      if (this.studentUser.faculty && !this.bookingForm.faculty) {
+        this.bookingForm.faculty = this.studentUser.faculty;
+      }
+
+      this.authModal.loginForm.password = "";
+      this.authModal.isOpen = false;
+      this.showToast(
+        `Selamat datang, ${name}! Chat AI & jadwal booking sudah terbuka.`
+      );
+      this.refreshIcons();
+    },
+
+    registerStudent() {
+      const name = (this.authModal.registerForm.name || "").trim();
+      const email = (this.authModal.registerForm.email || "").trim();
+      const faculty = (this.authModal.registerForm.faculty || "").trim();
+
+      if (!name) {
+        this.showToast("Nama lengkap wajib diisi!", "error");
+        return;
+      }
+
+      this.authModal.loginForm.name = name;
+      if (email) {
+        this.authModal.registerForm.email = email;
+      }
+      if (faculty) {
+        this.bookingForm.faculty = faculty;
+      }
+      this.authModal.registerForm = {
+        name: "",
+        email: "",
+        faculty: "",
+        password: ""
+      };
+      this.authModal.mode = "login";
+      this.showToast(
+        `Akun ${name} berhasil didaftarkan! Silakan login untuk melanjutkan.`
+      );
+      this.refreshIcons();
+    },
+
+    logoutStudent() {
+      this.studentUser = null;
+      this.showToast("Kamu telah keluar dari akun mahasiswa.");
+      this.refreshIcons();
+    },
+
+    clearChat() {
+      if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
+
+      this.chatMessages = [initialWelcome];
+      this.showToast("Riwayat chat dibersihkan.");
+      this.scrollChatToBottom();
+      this.refreshIcons();
+    },
+
+    async sendQuickPrompt(promptText) {
+      if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
+
+      this.activeTab = "ai-chat";
+      this.userInput = promptText;
+      this.refreshIcons();
+      await this.sendChatMessage();
+    },
+
+    async sendChatMessage() {
+      if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
+      if (this.isAiThinking) return;
+
+      const text = (this.userInput || "").trim();
+      if (!text) return;
+
+      this.chatMessages.push({
+        role: "user",
+        text
+      });
+      this.userInput = "";
+      this.isAiThinking = true;
+      this.scrollChatToBottom();
+
+      try {
+        if (typeof fetchGeminiResponse !== "function") {
+          throw new Error("Klien AI belum termuat.");
+        }
+
+        const replyText = await fetchGeminiResponse(this.chatMessages);
+
+        this.chatMessages.push({
+          role: "model",
+          text: replyText
+        });
+        this.scrollChatToBottom();
+      } catch (err) {
+        console.error("Chat error:", err);
+        this.showToast(
+          err?.message || "Gagal terhubung ke CurhatBuddy. Coba lagi sebentar ya.",
+          "error"
+        );
+      } finally {
+        this.isAiThinking = false;
+        this.refreshIcons();
+      }
+    },
+
+    getWebhookEndpoint() {
+      // Ganti dengan URL Production Webhook n8n kamu yang asli
+      const FALLBACK_WEBHOOK_URL = "https://URL-WEBHOOK-N8N-KAMU";
+
+      const cfg =
+        typeof window !== "undefined" && window.CONFIG
+          ? window.CONFIG
+          : typeof CONFIG !== "undefined"
+            ? CONFIG
+            : {};
+
+      const rawUrl =
+        cfg.BOOKING_ENDPOINT ||
+        cfg.BOOKING_WEBHOOK_URL ||
+        cfg.N8N_WEBHOOK_URL ||
+        cfg.WEBHOOK_URL ||
+        cfg.bookingEndpoint ||
+        cfg.bookingWebhookUrl ||
+        cfg.n8nWebhookUrl ||
+        FALLBACK_WEBHOOK_URL ||
+        "";
+
+      return String(rawUrl).trim();
+    },
+
+    hasValidWebhookEndpoint(endpoint) {
+      const url = String(endpoint || "").trim();
+      if (!url) return false;
+      if (!/^https?:\/\//i.test(url)) return false;
+      if (url.includes("<URL-HTTPS-N8N-KAMU>")) return false;
+      if (url.includes("YOUR_N8N_WEBHOOK")) return false;
+      if (url === "https://URL-WEBHOOK-N8N-KAMU") return false;
+      return true;
+    },
+
+    isValidEmail(val) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val || "").trim());
+    },
+
+    async submitBooking() {
+      if (!this.ensureStudentLoggedIn("jadwal booking konseling")) return;
+      if (this.isSubmittingBooking) return;
+
+      const name = (this.bookingForm?.name || "").trim();
+      const contact = (this.bookingForm?.contact || "").trim();
+      const faculty = (
+        this.bookingForm?.faculty ||
+        this.studentUser?.faculty ||
+        "-"
+      ).trim();
+      const mode = this.bookingForm?.mode === "Online" ? "Online" : "Offline";
+      const platform = mode === "Online" ? "Google Meet" : "";
+      const rawLocation = (this.bookingForm?.location || "").trim();
+      const date = this.bookingForm?.date || "";
+      const cleanTime = String(this.bookingForm?.time || "")
+        .replace(/\s*WIB\s*/gi, "")
+        .trim();
+      const topic = (this.bookingForm?.topic || "").trim();
+
+      if (!name || (!date && !cleanTime)) {
+        this.showToast("Lengkapi nama dan jadwal sesi terlebih dahulu!", "error");
+        return;
+      }
+
+      this.isSubmittingBooking = true;
+
+      const isEmail = this.isValidEmail(contact);
+      const phoneDigits = contact.replace(/\D/g, "");
+      const isWa = !isEmail && phoneDigits.length >= 8;
+
+      const contactType =
+        isEmail && isWa
+          ? "email_wa"
+          : isEmail
+            ? "email"
+            : isWa
+              ? "wa"
+              : "none";
+
+      let notifText = "notifikasi diproses";
+      if (isEmail && isWa) {
+        notifText = "notifikasi email & WA diproses";
+      } else if (isEmail) {
+        notifText = "notifikasi email diproses";
+      } else if (isWa) {
+        notifText = "notifikasi WA diproses";
+      }
+
+      const targetEmail = isEmail
+        ? contact
+        : (this.studentUser?.email || "").trim();
+
+      const timestampId = Date.now();
+      const bookingId = String(timestampId);
+      const schedule = `${date}${date && cleanTime ? " " : ""}${
+        cleanTime ? `(${cleanTime} WIB)` : ""
+      }`.trim();
+
+      const location =
+        mode === "Online"
+          ? `Online (Google Meet)${rawLocation ? ` - ${rawLocation}` : ""}`
+          : rawLocation || "Ruang Konseling";
+
+      const newBooking = {
+        id: timestampId,
+        bookingId,
+        action: "booking",
+        name,
+        contact,
+        contactType,
+        targetEmail,
+        faculty,
+        major: faculty,
+        mode,
+        platform,
+        meetingLink: "",
+        location,
+        date,
+        time: cleanTime ? `${cleanTime} WIB` : "",
+        schedule,
+        topic,
+        studentEmail: this.studentUser?.email || "",
+        status: "Pending",
+        source: "curhatdeck",
+        submittedAt: new Date().toISOString()
+      };
+
+      this.bookings.unshift(newBooking);
+      this.bookingForm = {
+        name: "",
+        contact: "",
+        faculty: this.studentUser?.faculty || "",
+        mode: "Offline",
+        platform: "Google Meet",
+        location: "",
+        date: "",
+        time: "",
+        topic: ""
+      };
+
+      const endpoint = this.getWebhookEndpoint();
+
+      if (!this.hasValidWebhookEndpoint(endpoint)) {
+        this.isSubmittingBooking = false;
+        this.showToast(
+          "Booking tersimpan di sesi aktif (endpoint booking belum diatur).",
+          "error"
+        );
+        return;
+      }
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(newBooking)
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.error || `HTTP ${res.status}`);
+        }
+
+        if (data?.meetingLink) {
+          newBooking.meetingLink = String(data.meetingLink).trim();
+        }
+        if (data?.bookingId) {
+          newBooking.bookingId = String(data.bookingId);
+        }
+        this.bookings = [...this.bookings];
+
+        this.showToast(`Permintaan booking terkirim & ${notifText}!`);
+      } catch (err) {
+        console.error("Booking submit error:", err);
+        this.showToast(
+          "Booking tersimpan di sesi aktif, tapi gagal mengirim ke server.",
+          "error"
+        );
+      } finally {
+        this.isSubmittingBooking = false;
+      }
+    },
+
+    setCounselorStatus(status) {
+      this.counselorStatus = status;
+      this.showToast(`Status konselor diubah menjadi ${status}`);
+      this.refreshIcons();
+    },
+
+    updateBookingTargetEmail(id, email) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (!target) return;
+
+      const cleaned = (email || "").trim();
+      target.targetEmail = cleaned;
+      this.bookings = [...this.bookings];
+      this.showToast(
+        cleaned
+          ? `Email tujuan diubah ke ${cleaned}`
+          : "Email tujuan dikosongkan."
+      );
+    },
+
+    updateBookingMode(id, newMode) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (!target) return;
+
+      const normalizedMode = newMode === "Online" ? "Online" : "Offline";
+      target.mode = normalizedMode;
+      target.platform = normalizedMode === "Online" ? "Google Meet" : "";
+
+      if (normalizedMode === "Offline") {
+        target.meetingLink = "";
+        if (!target.location || target.location.startsWith("Online")) {
+          target.location = "Ruang Konseling";
+        }
+      } else {
+        target.location = "Online (Google Meet)";
+      }
+
+      this.bookings = [...this.bookings];
+      this.showToast(`Mode booking diubah menjadi ${normalizedMode}.`);
+    },
+
+    updateMeetingLink(id, link, notifyWebhook = false) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (!target) return;
+
+      const cleanedLink = (link || "").trim();
+      target.mode = "Online";
+      target.platform = "Google Meet";
+      target.location = "Online (Google Meet)";
+      target.meetingLink = cleanedLink;
+
+      if (cleanedLink && target.status === "Pending") {
+        target.status = "Disetujui";
+      }
+
+      this.bookings = [...this.bookings];
+
+      this.showToast(
+        cleanedLink
+          ? "Link Google Meet disimpan & status menjadi Disetujui."
+          : "Link Google Meet dikosongkan."
+      );
+
+      if (notifyWebhook) {
+        this.sendBookingUpdateToWebhook(target, "meeting_link_updated");
+      }
+    },
+
+    async sendBookingUpdateToWebhook(bookingItem, actionType = "booking_updated") {
+      const endpoint = this.getWebhookEndpoint();
+      if (!this.hasValidWebhookEndpoint(endpoint)) {
+        this.showToast(
+          "Perubahan tersimpan di sesi aktif (endpoint booking belum diatur).",
+          "error"
+        );
+        return;
+      }
+
+      const effectiveEmail = (
+        bookingItem.targetEmail ||
+        (this.isValidEmail(bookingItem.contact) ? bookingItem.contact : "") ||
+        bookingItem.studentEmail ||
+        ""
+      ).trim();
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ...bookingItem,
+            targetEmail: effectiveEmail,
+            action: actionType,
+            updatedAt: new Date().toISOString()
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.error || `HTTP ${res.status}`);
+        }
+
+        this.showToast(
+          effectiveEmail
+            ? `Data & link Google Meet dikirim ke ${effectiveEmail}`
+            : "Data booking diperbarui ke server."
+        );
+      } catch (err) {
+        console.error("Webhook update error:", err);
+        this.showToast("Gagal mengirim pembaruan ke server n8n.", "error");
+      }
+    },
+
+    updateBookingStatus(id, newStatus) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (target) {
+        target.status = newStatus;
+        this.bookings = [...this.bookings];
+        this.showToast(`Status booking diubah menjadi ${newStatus}`);
+        this.sendBookingUpdateToWebhook(target, "status_updated");
+      }
+    },
+
+    deleteBooking(id) {
+      this.bookings = this.bookings.filter(
+        (b) => b.id !== id && b.bookingId !== id
+      );
+      this.showToast("Data booking dihapus.");
+    }
   };
-
-  const activeBtn = counselorList.querySelector(
-    `.btn-save-send[data-id="${CSS.escape(bookingId)}"]`
-  );
-  if (activeBtn) activeBtn.disabled = true;
-
-  try {
-    await postToWebhook(payload);
-    showAlert(
-      counselorAlert,
-      `Booking #${bookingId} disetujui dan data link Google Meet terkirim ke n8n.`,
-      "success"
-    );
-  } catch (err) {
-    showAlert(
-      counselorAlert,
-      `Data tersimpan di browser, namun pengiriman ke n8n gagal: ${err.message}`,
-      "error"
-    );
-  } finally {
-    if (activeBtn) activeBtn.disabled = false;
-  }
-});
-
-async function postToWebhook(payload) {
-  if (!N8N_WEBHOOK_URL || N8N_WEBHOOK_URL.includes("https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router")) {
-    throw new Error("N8N_WEBHOOK_URL di app.js belum diganti.");
-  }
-
-  const res = await fetch(N8N_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    throw new Error(`Status HTTP ${res.status}`);
-  }
 }
 
-function readItems() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function writeItems() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
-
-function showAlert(el, message, type) {
-  el.textContent = message;
-  el.className = type === "success" ? "alert show-success" : "alert show-error";
-}
-
-function escapeHtml(val) {
-  return String(val ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function escapeAttr(val) {
-  return escapeHtml(val);
-}
-
-renderCounselorList();
+window.appData = appData;
