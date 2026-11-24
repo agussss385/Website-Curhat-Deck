@@ -1,9 +1,8 @@
 // Configuration File
 const CONFIG = {
-  N8N_WEBHOOK_URL: "http://localhost:5678/webhook/curhatdeck-router",
-  AI_CHAT_ENDPOINT: "http://localhost:5678/webhook/curhatdeck-routerr",
-  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook/curhatdeck-router",
-  BOOKING_ENDPOINT: "http://localhost:5678/webhook/curhatdeck-router",
+ 
+  AI_CHAT_ENDPOINT: "https://curhatdeck.vercel.app/webhook/curhatdeck-routerr",
+  BOOKING_ENDPOINT: "https://curhatdeck.vercel.app/webhook/curhatdeck-routerr",
   REQUEST_TIMEOUT_MS: 25000,
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
