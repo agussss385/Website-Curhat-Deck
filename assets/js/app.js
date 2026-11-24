@@ -59,44 +59,6 @@ function appData() {
     },
 
     init() {
-      if (window.LocalStore) {
-        const savedChat = LocalStore.get(LocalStore.KEYS.CHAT_MESSAGES, null);
-        if (Array.isArray(savedChat) && savedChat.length > 0) {
-          this.chatMessages = savedChat;
-        }
-        this.bookings = LocalStore.get(LocalStore.KEYS.BOOKINGS, []);
-        this.studentUser = LocalStore.get(LocalStore.KEYS.STUDENT_USER, null);
-        this.counselorStatus = LocalStore.get(
-          LocalStore.KEYS.COUNSELOR_STATUS,
-          "Online"
-        );
-
-        if (this.studentUser?.faculty && !this.bookingForm.faculty) {
-          this.bookingForm.faculty = this.studentUser.faculty;
-        }
-
-        this.$watch("chatMessages", (val) => {
-          LocalStore.set(LocalStore.KEYS.CHAT_MESSAGES, val);
-        });
-        this.$watch("bookings", (val) => {
-          LocalStore.set(LocalStore.KEYS.BOOKINGS, val);
-        });
-        this.$watch("studentUser", (val) => {
-          if (val) {
-            LocalStore.set(LocalStore.KEYS.STUDENT_USER, val);
-            if (val.faculty && !this.bookingForm.faculty) {
-              this.bookingForm.faculty = val.faculty;
-            }
-          } else {
-            LocalStore.remove(LocalStore.KEYS.STUDENT_USER);
-          }
-          this.refreshIcons();
-        });
-        this.$watch("counselorStatus", (val) => {
-          LocalStore.set(LocalStore.KEYS.COUNSELOR_STATUS, val);
-        });
-      }
-
       this.refreshIcons();
       this.scrollChatToBottom();
     },
@@ -105,7 +67,10 @@ function appData() {
       if (this.studentUser) {
         return true;
       }
-      this.showToast(`Silakan login terlebih dahulu untuk memakai ${featureLabel}.`, "error");
+      this.showToast(
+        `Silakan login terlebih dahulu untuk memakai ${featureLabel}.`,
+        "error"
+      );
       this.openAuthModal("login");
       return false;
     },
@@ -185,7 +150,9 @@ function appData() {
 
       this.authModal.loginForm.password = "";
       this.authModal.isOpen = false;
-      this.showToast(`Selamat datang, ${name}! Chat AI & jadwal booking sudah terbuka.`);
+      this.showToast(
+        `Selamat datang, ${name}! Chat AI & jadwal booking sudah terbuka.`
+      );
       this.refreshIcons();
     },
 
@@ -213,15 +180,14 @@ function appData() {
         password: ""
       };
       this.authModal.mode = "login";
-      this.showToast(`Akun ${name} berhasil didaftarkan! Silakan login untuk melanjutkan.`);
+      this.showToast(
+        `Akun ${name} berhasil didaftarkan! Silakan login untuk melanjutkan.`
+      );
       this.refreshIcons();
     },
 
     logoutStudent() {
       this.studentUser = null;
-      if (window.LocalStore) {
-        LocalStore.remove(LocalStore.KEYS.STUDENT_USER);
-      }
       this.showToast("Kamu telah keluar dari akun mahasiswa.");
       this.refreshIcons();
     },
@@ -230,9 +196,6 @@ function appData() {
       if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
 
       this.chatMessages = [initialWelcome];
-      if (window.LocalStore) {
-        LocalStore.remove(LocalStore.KEYS.CHAT_MESSAGES);
-      }
       this.showToast("Riwayat chat dibersihkan.");
       this.scrollChatToBottom();
       this.refreshIcons();
@@ -264,7 +227,7 @@ function appData() {
 
       try {
         if (typeof fetchGeminiResponse !== "function") {
-          throw new Error("Klien AI (ai.js) belum termuat.");
+          throw new Error("Klien AI belum termuat.");
         }
 
         const replyText = await fetchGeminiResponse(this.chatMessages);
@@ -340,13 +303,14 @@ function appData() {
       const phoneDigits = contact.replace(/\D/g, "");
       const isWa = !isEmail && phoneDigits.length >= 8;
 
-      const contactType = isEmail && isWa
-        ? "email_wa"
-        : isEmail
-          ? "email"
-          : isWa
-            ? "wa"
-            : "none";
+      const contactType =
+        isEmail && isWa
+          ? "email_wa"
+          : isEmail
+            ? "email"
+            : isWa
+              ? "wa"
+              : "none";
 
       let notifText = "notifikasi diproses";
       if (isEmail && isWa) {
@@ -363,7 +327,9 @@ function appData() {
 
       const timestampId = Date.now();
       const bookingId = String(timestampId);
-      const schedule = `${date}${date && time ? " " : ""}${time ? `(${time} WIB)` : ""}`.trim();
+      const schedule = `${date}${date && time ? " " : ""}${
+        time ? `(${time} WIB)` : ""
+      }`.trim();
 
       const location =
         mode === "Online"
@@ -412,7 +378,7 @@ function appData() {
       if (!this.hasValidWebhookEndpoint(endpoint)) {
         this.isSubmittingBooking = false;
         this.showToast(
-          "Booking tersimpan lokal (endpoint booking belum diatur).",
+          "Booking tersimpan di sesi aktif (endpoint booking belum diatur).",
           "error"
         );
         return;
@@ -445,7 +411,7 @@ function appData() {
       } catch (err) {
         console.error("Booking submit error:", err);
         this.showToast(
-          "Booking tersimpan lokal, tapi gagal mengirim notifikasi ke server.",
+          "Booking tersimpan di sesi aktif, tapi gagal mengirim ke server.",
           "error"
         );
       } finally {
@@ -519,7 +485,7 @@ function appData() {
       const endpoint = this.getWebhookEndpoint();
       if (!this.hasValidWebhookEndpoint(endpoint)) {
         this.showToast(
-          "Perubahan tersimpan lokal (endpoint booking belum diatur).",
+          "Perubahan tersimpan di sesi aktif (endpoint booking belum diatur).",
           "error"
         );
         return;
@@ -558,10 +524,7 @@ function appData() {
         );
       } catch (err) {
         console.error("Webhook update error:", err);
-        this.showToast(
-          "Gagal mengirim pembaruan ke server n8n.",
-          "error"
-        );
+        this.showToast("Gagal mengirim pembaruan ke server n8n.", "error");
       }
     },
 
@@ -575,7 +538,9 @@ function appData() {
     },
 
     deleteBooking(id) {
-      this.bookings = this.bookings.filter((b) => b.id !== id && b.bookingId !== id);
+      this.bookings = this.bookings.filter(
+        (b) => b.id !== id && b.bookingId !== id
+      );
       this.showToast("Data booking dihapus.");
     }
   };
