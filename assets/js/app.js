@@ -1,4 +1,4 @@
-// Helper AI Chat yang aman (melewati endpoint/webhook n8n tanpa mengekspos API key di frontend)
+// Helper AI Chat CurhatBuddy (melewati endpoint/webhook n8n)
 async function fetchGeminiResponse(chatMessages = []) {
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
@@ -38,7 +38,8 @@ async function fetchGeminiResponse(chatMessages = []) {
     })
   });
 
-  const data = await response.json().catch(() => ({}));
+  const rawData = await response.json().catch(() => null);
+  const data = Array.isArray(rawData) ? rawData[0] || {} : rawData || {};
 
   if (!response.ok || data?.ok === false) {
     throw new Error(
@@ -50,13 +51,18 @@ async function fetchGeminiResponse(chatMessages = []) {
     data?.reply ||
     data?.text ||
     data?.output ||
+    data?.response ||
+    data?.answer ||
     data?.message ||
+    data?.data?.reply ||
+    data?.data?.text ||
+    data?.data?.output ||
     data?.candidates?.[0]?.content?.parts?.[0]?.text ||
     "";
 
   const trimmedReply = String(replyText).trim();
   if (!trimmedReply) {
-    return "Aku di sini dengerin kamu kok 🫂 Coba ceritain lagi pelan-pelan ya, apa yang lagi bikin kamu kepikiran?";
+    throw new Error("Respon AI kosong dari endpoint. Cek node output di n8n.");
   }
 
   return trimmedReply;
