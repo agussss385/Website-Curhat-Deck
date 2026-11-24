@@ -38,12 +38,27 @@ async function fetchGeminiResponse(chatMessages = []) {
     })
   });
 
-  const rawData = await response.json().catch(() => null);
-  const data = Array.isArray(rawData) ? rawData[0] || {} : rawData || {};
+  const rawText = await response.text().catch(() => "");
+  let parsed = null;
+
+  if (rawText) {
+    try {
+      parsed = JSON.parse(rawText);
+    } catch (_) {
+      // Jika n8n mengembalikan plain text langsung
+      if (response.ok) {
+        return rawText.trim();
+      }
+    }
+  }
+
+  const data = Array.isArray(parsed) ? parsed[0] || {} : parsed || {};
 
   if (!response.ok || data?.ok === false) {
     throw new Error(
-      data?.error?.message || data?.error || `Gagal terhubung ke AI (HTTP ${response.status})`
+      data?.error?.message ||
+        data?.error ||
+        `Gagal terhubung ke AI (HTTP ${response.status})`
     );
   }
 
@@ -52,17 +67,23 @@ async function fetchGeminiResponse(chatMessages = []) {
     data?.text ||
     data?.output ||
     data?.response ||
+    data?.result ||
     data?.answer ||
     data?.message ||
     data?.data?.reply ||
     data?.data?.text ||
     data?.data?.output ||
+    data?.json?.reply ||
+    data?.json?.text ||
+    data?.json?.output ||
     data?.candidates?.[0]?.content?.parts?.[0]?.text ||
     "";
 
   const trimmedReply = String(replyText).trim();
   if (!trimmedReply) {
-    throw new Error("Respon AI kosong dari endpoint. Cek node output di n8n.");
+    throw new Error(
+      "Respon AI kosong dari endpoint. Pastikan node Respond to Webhook di n8n mengirim { \"reply\": \"...\" }."
+    );
   }
 
   return trimmedReply;
