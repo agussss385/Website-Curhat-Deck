@@ -30,6 +30,9 @@
     }
   </style>
 
+  <!-- Script Aplikasi (sesuaikan path jika berbeda) -->
+  <script src="./assets/js/app.js"></script>
+
   <!-- Alpine.js (Defer) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -264,6 +267,11 @@
                 <input type="text" :disabled="!studentUser" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
               </div>
 
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Tempat / Ruang Konseling</label>
+                <input type="text" :disabled="!studentUser" x-model="bookingForm.location" placeholder="Contoh: Ruang Konseling / Online (default: Ruang Konseling)" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Pilih Tanggal</label>
@@ -339,8 +347,10 @@
             <table class="w-full text-left text-sm">
               <thead class="bg-slate-800 text-xs font-bold uppercase tracking-wider text-slate-300 border-b-2 border-black">
                 <tr>
+                  <th class="p-3">No. Seri</th>
                   <th class="p-3">Nama/Inisial</th>
                   <th class="p-3">Kontak</th>
+                  <th class="p-3">Tempat</th>
                   <th class="p-3">Jadwal</th>
                   <th class="p-3">Topik Curhat</th>
                   <th class="p-3">Status</th>
@@ -348,11 +358,13 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-800">
-                <template x-for="(item, idx) in bookings" :key="item.id">
+                <template x-for="(item, idx) in bookings" :key="item.bookingId || item.id || idx">
                   <tr class="hover:bg-slate-800/50">
+                    <td class="p-3 font-mono text-xs font-bold text-pink-400 whitespace-nowrap" x-text="item.bookingId || item.id || '-'"></td>
                     <td class="p-3 font-bold text-white" x-text="item.name"></td>
                     <td class="p-3 text-slate-300 font-mono text-xs" x-text="item.contact"></td>
-                    <td class="p-3 text-slate-300 text-xs" x-text="`${item.date} (${item.time})`"></td>
+                    <td class="p-3 text-slate-300 text-xs" x-text="item.location || 'Ruang Konseling'"></td>
+                    <td class="p-3 text-slate-300 text-xs whitespace-nowrap" x-text="item.schedule || `${item.date} (${item.time})`"></td>
                     <td class="p-3 text-slate-400 text-xs max-w-xs truncate" x-text="item.topic"></td>
                     <td class="p-3">
                       <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border border-black"
@@ -363,15 +375,15 @@
                             }"
                             x-text="item.status"></span>
                     </td>
-                    <td class="p-3 text-right space-x-1">
-                      <button type="button" x-show="item.status === 'Pending'" @click="updateBookingStatus(item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
-                      <button type="button" x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
-                      <button type="button" @click="deleteBooking(item.id)" class="px-2.5 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
+                    <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                      <button type="button" x-show="item.status === 'Pending'" @click="updateBookingStatus(item.bookingId || item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
+                      <button type="button" x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.bookingId || item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
+                      <button type="button" @click="deleteBooking(item.bookingId || item.id)" class="px-2.5 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
                     </td>
                   </tr>
                 </template>
                 <tr x-show="bookings.length === 0">
-                  <td colspan="6" class="p-6 text-center text-slate-500 italic">Belum ada antrean booking curhat.</td>
+                  <td colspan="8" class="p-6 text-center text-slate-500 italic">Belum ada antrean booking curhat.</td>
                 </tr>
               </tbody>
             </table>
@@ -450,37 +462,34 @@
   <!-- SOS Emergency Modal -->
   <div x-show="showSosModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
     <div @click.outside="showSosModal = false" class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ef4444] space-y-4">
-      <div class="flex justify-between items-start">
-        <h3 class="text-xl font-black font-space text-red-400 flex items-center gap-2">
-          <i data-lucide="siren" class="w-6 h-6"></i> Bantuan Darurat (Hotline)
-        </h3>
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2 text-red-400">
+          <i data-lucide="siren" class="w-5 h-5"></i>
+          <h3 class="text-xl font-black font-space">Bantuan Darurat / SOS</h3>
+        </div>
         <button type="button" @click="showSosModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
       </div>
-      <p class="text-xs text-slate-300 leading-relaxed">
-        Jika kamu atau temanmu berada dalam situasi krisis kesehatan mental yang membutuhkan pertolongan cepat, jangan ragu untuk menghubungi layanan resmi berikut:
+
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+        Kalau kamu sedang merasa sangat tertekan, tidak aman, atau butuh dukungan segera, jangan hadapi sendirian. Hubungi layanan bantuan atau konselor terdekat.
       </p>
-      <div class="space-y-2">
-        <a href="tel:119" class="block p-3 bg-red-500/20 border-2 border-red-500 rounded-xl text-center font-bold text-red-300 hover:bg-red-500/30">
-          📞 Hotline Layanan Sejiwa: 119 (Ext. 8)
-        </a>
-        <a href="https://www.intothelightid.org/tentang-bunuh-diri/layanan-konseling-2/" target="_blank" rel="noopener noreferrer" class="block p-3 bg-slate-800 border-2 border-black rounded-xl text-center font-bold text-xs text-cyan-300 hover:bg-slate-700">
-          🌐 Layanan Crisis Into The Light Indonesia
-        </a>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="bg-slate-800 border-2 border-black rounded-2xl p-3">
+          <p class="font-bold text-yellow-300">Layanan Konseling Kampus & Peer Support</p>
+          <p class="text-slate-300 mt-0.5">Ajukan jadwal prioritas lewat menu <strong class="text-white">Booking Sesi 1-on-1</strong> atau hubungi bagian kemahasiswaan.</p>
+        </div>
+        <div class="bg-slate-800 border-2 border-black rounded-2xl p-3">
+          <p class="font-bold text-cyan-300">Layanan Darurat Nasional</p>
+          <p class="text-slate-300 mt-0.5">Hubungi <strong class="text-white">119</strong> atau layanan darurat setempat bila berada dalam situasi krisis.</p>
+        </div>
       </div>
+
+      <button type="button" @click="showSosModal = false" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] text-sm">
+        Tutup
+      </button>
     </div>
   </div>
 
-  <!-- JavaScript Project Files -->
-  <script src="./assets/js/config.js"></script>
-  <script src="./assets/js/store.js"></script>
-  <script src="./assets/js/ai.js"></script>
-  <script src="./assets/js/app.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (window.lucide && typeof window.lucide.createIcons === "function") {
-        window.lucide.createIcons();
-      }
-    });
-  </script>
 </body>
 </html>
