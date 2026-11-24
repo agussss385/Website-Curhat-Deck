@@ -1,20 +1,76 @@
-// Helper AI Chat CurhatBuddy (melewati webhook n8n + fallback aman bila n8n mengembalikan kosong)
+// Helper AI Chat CurhatBuddy (melewati webhook n8n + fallback santai khas Kampus Koli Media)
 function buildLocalCurhatFallback(lastMessage = "") {
-  const cleanMsg = String(lastMessage || "").toLowerCase();
+  const raw = String(lastMessage || "").trim();
+  const q = raw.toLowerCase();
 
-  if (cleanMsg.includes("revisi") || cleanMsg.includes("deadline") || cleanMsg.includes("dosen")) {
-    return "Beneran paham banget rasanya dikejar revisi dan deadline proyek/kuliah, peluk jauh 🫂 Wajar banget kalau kepala rasanya penuh. Coba tarik napas dulu sebentar—bagian mana yang paling bikin kamu stuck sekarang, biar kita pecah pelan-pelan?";
+  const isGreeting =
+    /^(hai+|halo+|hi+|hey+|yo+|pagi|siang|sore|malem|malam|p|tes|ping)[\s!.?]*$/i.test(
+      q
+    );
+  if (isGreeting) {
+    return "Halo! Sini-sini, lagi santai atau lagi ada yang bikin kepala muter nih? Ceritain aja soal kuliah di Koli Media, matkul, revisi, atau hal random apa pun—santuy aja, nggak bakal di-judge kok 🫂";
   }
 
-  if (cleanMsg.includes("creative") || cleanMsg.includes("stuck") || cleanMsg.includes("ide") || cleanMsg.includes("bingung")) {
-    return "It's completely valid kalau lagi kena creative block atau ngerasa bingung mau mulai dari mana 🫂 Di dunia kreatif/kuliah yang serba ngebut gini, otak juga butuh jeda tanpa rasa bersalah. Ceritain aja apa yang lagi kamu kerjain sekarang, no judgment ya!";
+  if (
+    q.includes("matkul") ||
+    q.includes("mata kuliah") ||
+    q.includes("jurusan") ||
+    q.includes("prodi") ||
+    q.includes("sks") ||
+    q.includes("semester")
+  ) {
+    const jurusanInfo = [
+      "• **Multimedia / Teknologi Rekayasa Multimedia:** biasanya muter di pemrograman interaktif, web/mobile, aset 2D/3D, audio-visual, dan pengembangan produk media digital.",
+      "• **Desain (Desain Grafis / DKV):** lekat sama tipografi, ilustrasi, identitas visual, tata letak, fotografi, dan perancangan kampanye atau produk kreatif.",
+      "• **Produksi Media (Penyiaran / Film / Animasi):** banyak bersinggungan sama penulisan naskah, penyutradaraan, sinematografi, *editing*, tata suara, dan manajemen produksi.",
+      "• **Grafika / Penerbitan / Pengemasan:** fokus ke proses cetak, *prepress*, editorial/penerbitan, material, dan desain kemasan produk.",
+      "• **Bisnis / Manajemen di bidang kreatif (seperti Pemasaran atau Event/MICE):** ngebahas strategi pemasaran, riset pasar, komunikasi bisnis, serta perencanaan dan eksekusi *event*."
+    ].join("\n");
+
+    return `Kalau ngomongin mata kuliah di Kampus Koli Media, tiap jurusan memang punya *vibe* dan beban praktiknya sendiri-sendiri 🫂 Secara garis besar:\n\n${jurusanInfo}\n\nKalau detail kurikulum atau daftar matkul wajib per semester di prodi kamu, paling aman cek buku pedoman akademik atau tanya ke dosen wali karena bisa beda tiap angkatan. Kamu lagi di jurusan apa sekarang, dan ada matkul yang lagi bikin pusing?`;
   }
 
-  if (cleanMsg.includes("magang") || cleanMsg.includes("masa depan") || cleanMsg.includes("fomo") || cleanMsg.includes("anxious") || cleanMsg.includes("cemas")) {
-    return "Wajar banget ngerasa anxious soal masa depan, magang, atau kebawa FOMO lihat progres orang lain 🫂 Padahal ritme tiap orang beda-beda dan kamu tetap berjalan di jalurmu sendiri. Kamu paling kepikiran soal apa nih belakangan ini?";
+  if (
+    q.includes("revisi") ||
+    q.includes("deadline") ||
+    q.includes("dosen") ||
+    q.includes("ta") ||
+    q.includes("tugas akhir") ||
+    q.includes("proyek") ||
+    q.includes("praktikum")
+  ) {
+    return "Wah, klasik banget ya di Koli Media—baru beres satu revisi atau *deadline* proyek, eh udah muncul catatan baru lagi 😭 Wajar banget kalau rasanya capek duluan sebelum mulai. Coba pilih satu hal paling kecil yang bisa diberesin hari ini dulu aja biar nggak numpuk di kepala. Proyek atau matkul apa yang lagi ngejar kamu sekarang?";
   }
 
-  return "Aku di sini dengerin kamu kok, no judgment sama sekali 🫂 Coba ceritain pelan-pelan apa yang lagi bikin kamu kepikiran hari ini—soal kuliah, karya, atau perasaanmu sendiri?";
+  if (
+    q.includes("creative block") ||
+    q.includes("stuck") ||
+    q.includes("ide") ||
+    q.includes("mentok") ||
+    q.includes("burnout") ||
+    q.includes("bingung")
+  ) {
+    return "Lagi kena *stuck* atau *creative block* ya? Santai dulu, itu sering banget kejadian apalagi kalau otak udah kepenuhan sama layar, revisi, dan target karya 🫂 Kadang cara paling ngefek bukan maksa perah otak terus, tapi ganti suasana sebentar, nonton/lihat referensi di luar zona biasa, atau istirahat beneran. Lagi mentok di bagian apanya nih?";
+  }
+
+  if (
+    q.includes("magang") ||
+    q.includes("masa depan") ||
+    q.includes("fomo") ||
+    q.includes("anxious") ||
+    q.includes("cemas") ||
+    q.includes("portofolio") ||
+    q.includes("karier") ||
+    q.includes("karir")
+  ) {
+    return "Perasaan *anxious* soal magang, *portofolio*, atau kebawa FOMO ngelihat temen-temen lain itu nyata banget, apalagi di lingkungan kampus kreatif yang progresnya sering kelihatan di medsos 🫂 Tapi tiap orang punya *timeline* dan *pace* masing-masing kok. Kamu lagi paling kepikiran soal persiapan magang atau ngerasa ketertinggalan di bagian mana?";
+  }
+
+  if (q.includes("kata") || q.includes("semangat") || q.includes("quotes") || q.includes("capek")) {
+    return "Nggak harus selalu gas pol setiap hari kok—pelan-pelan jalan juga tetap maju, selama nggak berhenti total 🫂 Capek itu tanda kamu udah berusaha, bukan tanda kamu gagal. Tarik napas dulu pelan-pelan, kamu nggak sendirian ngadepin ini.";
+  }
+
+  return `Denger kok soal "${raw}" 🫂 Di Kampus Koli Media memang sering banyak dinamika yang bikin kepala rame—entah itu urusan matkul, proyek, pergaulan kampus, atau sekadar capek sendiri. Ceritain aja alurnya gimana, aku dengerin tanpa nge-judge.`;
 }
 
 async function fetchGeminiResponse(chatMessages = []) {
@@ -30,7 +86,18 @@ async function fetchGeminiResponse(chatMessages = []) {
       ""
   ).trim();
 
-  const systemInstruction = String(cfg.SYSTEM_INSTRUCTION || "").trim();
+  const defaultKoliMediaSystemInstruction = `Kamu adalah CurhatBuddy, teman ngobrol & peer support yang santai, hangat, dan empatik untuk mahasiswa di Kampus Koli Media (Polimedia) pada platform CurhatDeck.
+Gaya & aturan jawabmu:
+1. Pakai bahasa Indonesia yang natural, santai, akrab, dan tidak kaku seperti bot atau dosen—validasi perasaan mahasiswa dulu sebelum ngasih saran ringan.
+2. Dengarkan cerita mahasiswa tanpa menghakimi (no judgment) dan hindari ceramah panjang yang menggurui.
+3. Pahami konteks masalah di Kampus Koli Media: revisi proyek/karya bertubi-tubi, *deadline* produksi/pameran/tugas akhir, *creative block* dan *burnout*, tekanan *portofolio* & magang, serta *overthinking* atau FOMO.
+4. Jika ditanya soal mata kuliah per jurusan di Kampus Koli Media, berikan gambaran umum yang relevan per rumpun/jurusan (seperti Multimedia/TRM, Desain/DKV, Produksi Media/Penyiaran/Film/Animasi, Grafika/Penerbitan/Pengemasan, atau Bisnis/Event/Pemasaran kreatif), dan ingatkan secara natural bahwa detail silabus/kode matkul tiap angkatan paling tepat dicek ke pedoman akademik atau dosen wali.
+5. Jawab luwes dan secukupnya sesuai konteks obrolan; jika ada indikasi krisis berat atau menyakiti diri sendiri, arahkan dengan lembut ke tombol SOS atau booking sesi 1-on-1 dengan konselor.`;
+
+  const systemInstruction = String(
+    cfg.SYSTEM_INSTRUCTION || defaultKoliMediaSystemInstruction
+  ).trim();
+
   const cleanMessages = (Array.isArray(chatMessages) ? chatMessages : [])
     .filter((m) => m && typeof m.text === "string" && m.text.trim() !== "")
     .map((m) => ({
@@ -56,6 +123,7 @@ async function fetchGeminiResponse(chatMessages = []) {
       body: JSON.stringify({
         action: "ai_chat",
         source: "curhatdeck",
+        campus: "Kampus Koli Media",
         systemInstruction,
         messages: cleanMessages,
         lastMessage: lastUserText
@@ -113,7 +181,7 @@ window.fetchGeminiResponse = fetchGeminiResponse;
 function appData() {
   const initialWelcome = {
     role: "model",
-    text: "Halo! Aku CurhatBuddy 🫂 Ada unek-unek soal kuliah, revisi, deadline, atau hal lain yang lagi bikin kepikiran? Cerita aja di sini, no judgment ya!"
+    text: "Halo! Aku CurhatBuddy 🫂 Mau ngobrolin masalah di Kampus Koli Media, mata kuliah per jurusan, revisi, atau sekadar unek-unek random? Santuy aja di sini, no judgment!"
   };
 
   return {
