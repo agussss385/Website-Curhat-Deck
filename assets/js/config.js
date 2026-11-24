@@ -1,6 +1,6 @@
 // Configuration File
 const CONFIG = {
-  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook-test/booking-konselor",
+  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook/booking-konselor",
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di Polimedia (Politeknik Negeri Media Kreatif) pada platform CurhatDeck.
