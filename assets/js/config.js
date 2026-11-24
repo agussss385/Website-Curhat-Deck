@@ -1,9 +1,7 @@
 // Configuration File
 const CONFIG = {
-  // URL Webhook n8n untuk notifikasi booking sesi konselor ke Gmail
-  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook-test/booking-konselor",
-
-  // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z
+  GOOGLE_CLIENT_ID: "119086048900-t2pbd8g9uicf3t0etf71ldtib5045hu9.apps.googleusercontent.com",
+  BOOKING_WEBHOOK_URL: "https://DOMAIN_N8N_KAMU/webhook/booking-konselor",
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di platform CurhatDeck.
 Aturan respon kamu:
 1. Pakai bahasa Indonesia gaul Gen-Z yang empati, hangat, suportif, dan ramah (contoh: "beneran paham banget", "peluk jauh 🫂", "it's completely valid!").
