@@ -1,5 +1,8 @@
 // Configuration File
 const CONFIG = {
+  // URL Webhook n8n untuk notifikasi booking sesi konselor ke Gmail
+  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook-test/booking-konselor",
+
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di platform CurhatDeck.
 Aturan respon kamu:
