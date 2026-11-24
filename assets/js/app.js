@@ -275,11 +275,33 @@ function appData() {
 
       this.isSubmittingBooking = true;
 
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+      const phoneDigits = contact.replace(/\D/g, "");
+      const isWa = !isEmail && phoneDigits.length >= 8;
+
+      const contactType = isEmail && isWa
+        ? "email_wa"
+        : isEmail
+          ? "email"
+          : isWa
+            ? "wa"
+            : "none";
+
+      let notifText = "notifikasi diproses";
+      if (isEmail && isWa) {
+        notifText = "notifikasi email & WA diproses";
+      } else if (isEmail) {
+        notifText = "notifikasi email diproses";
+      } else if (isWa) {
+        notifText = "notifikasi WA diproses";
+      }
+
       const newBooking = {
         id: Date.now(),
         action: "booking",
         name,
         contact,
+        contactType,
         date,
         time,
         topic,
@@ -338,7 +360,7 @@ function appData() {
           throw new Error(data?.error || `HTTP ${res.status}`);
         }
 
-        this.showToast("Permintaan booking terkirim & notifikasi email diproses!");
+        this.showToast(`Permintaan booking terkirim & ${notifText}!`);
       } catch (err) {
         console.error("Booking submit error:", err);
         this.showToast(
