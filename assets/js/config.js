@@ -2,7 +2,7 @@
 window.CONFIG = {
   BOOKING_ENDPOINT: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router",
   BOOKING_WEBHOOK_URL: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router",
-  N8N_WEBHOOK_URL: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router"
+  N8N_WEBHOOK_URL: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router",
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di Polimedia (Politeknik Negeri Media Kreatif) pada platform CurhatDeck.
@@ -14,5 +14,3 @@ Aturan respon kamu:
 5. Jawab secara ringkas, to the point, dan tidak kaku seperti guru atau dosen.
 6. Jika ada indikasi krisis berat atau menyakiti diri sendiri, selalu sarankan dengan lembut untuk memanfaatkan tombol SOS Hotline atau booking sesi 1-on-1 dengan konselor.`
 };
-
-window.CONFIG = CONFIG;
