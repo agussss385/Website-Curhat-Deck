@@ -1,4 +1,21 @@
 document.addEventListener('alpine:init', () => {
+  function decodeJwtPayload(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (err) {
+      console.error('Gagal decode token Google:', err);
+      return null;
+    }
+  }
+
   Alpine.data('appData', () => ({
     // States
     currentRole: 'student', // 'student' | 'counselor'
@@ -8,6 +25,20 @@ document.addEventListener('alpine:init', () => {
     isAiThinking: false,
     isSubmittingBooking: false,
     showSosModal: false,
+
+    // Auth Mahasiswa
+    studentUser: LocalStore.get('curhat_student_user', null),
+    registeredStudents: LocalStore.get('curhat_registered_students', []),
+    authModal: {
+      isOpen: false,
+      mode: 'login', // 'login' | 'register'
+      form: {
+        name: '',
+        email: '',
+        faculty: '',
+        nim: ''
+      }
+    },
 
     toast: {
       show: false,
@@ -35,10 +66,146 @@ document.addEventListener('alpine:init', () => {
       this.$watch('chatMessages', val => LocalStore.set('curhat_chat_history', val));
       this.$watch('bookings', val => LocalStore.set('curhat_bookings', val));
       this.$watch('counselorStatus', val => LocalStore.set('curhat_counselor_status', val));
+      this.$watch('studentUser', val => {
+        LocalStore.set('curhat_student_user', val);
+        if (val) {
+          if (!this.bookingForm.name) {
+            this.bookingForm.name = val.faculty ? `${val.name} (${val.faculty})` : val.name;
+          }
+          if (!this.bookingForm.contact && val.email) {
+            this.bookingForm.contact = val.email;
+          }
+        }
+      });
+      this.$watch('registeredStudents', val => LocalStore.set('curhat_registered_students', val));
+
+      window.handleGoogleStudentCredential = (response) => {
+        this.handleGoogleCredentialResponse(response);
+      };
 
       this.$nextTick(() => {
         if (window.lucide) lucide.createIcons();
+        this.initGoogleSignIn();
       });
+    },
+
+    initGoogleSignIn() {
+      const clientId = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_CLIENT_ID)
+        ? CONFIG.GOOGLE_CLIENT_ID.trim()
+        : '';
+
+      if (!clientId || clientId.includes('YOUR_GOOGLE_OAUTH_CLIENT_ID')) return;
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response) => this.handleGoogleCredentialResponse(response)
+      });
+
+      const btnContainer = document.getElementById('googleSignInBtn');
+      if (btnContainer) {
+        btnContainer.innerHTML = '';
+        window.google.accounts.id.renderButton(btnContainer, {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'pill',
+          width: 280
+        });
+      }
+    },
+
+    handleGoogleCredentialResponse(response) {
+      if (!response || !response.credential) {
+        this.showToast("Login Google dibatalkan atau gagal.", "error");
+        return;
+      }
+
+      const payload = decodeJwtPayload(response.credential);
+      if (!payload || !payload.email) {
+        this.showToast("Data akun Google tidak valid.", "error");
+        return;
+      }
+
+      const existing = this.registeredStudents.find(
+        s => s.email.toLowerCase() === payload.email.toLowerCase()
+      );
+
+      const studentProfile = {
+        name: existing?.name || payload.name || 'Mahasiswa',
+        email: payload.email,
+        faculty: existing?.faculty || '',
+        nim: existing?.nim || '',
+        picture: payload.picture || '',
+        provider: 'google',
+        loggedInAt: new Date().toISOString()
+      };
+
+      if (!existing) {
+        this.registeredStudents.unshift(studentProfile);
+      }
+
+      this.currentRole = 'student';
+      this.studentUser = studentProfile;
+      this.authModal.isOpen = false;
+      this.showToast(`Login Google berhasil! Halo, ${studentProfile.name}`);
+      this.$nextTick(() => lucide.createIcons());
+    },
+
+    openAuthModal(mode = 'login') {
+      this.authModal.mode = mode;
+      this.authModal.isOpen = true;
+      this.$nextTick(() => {
+        if (window.lucide) lucide.createIcons();
+        this.initGoogleSignIn();
+      });
+    },
+
+    closeAuthModal() {
+      this.authModal.isOpen = false;
+    },
+
+    registerStudent() {
+      const name = this.authModal.form.name.trim();
+      const email = this.authModal.form.email.trim().toLowerCase();
+      const faculty = this.authModal.form.faculty.trim();
+      const nim = this.authModal.form.nim.trim();
+
+      if (!name || !email) {
+        this.showToast("Nama lengkap dan email wajib diisi!", "error");
+        return;
+      }
+
+      const newStudent = {
+        name,
+        email,
+        faculty,
+        nim,
+        picture: '',
+        provider: 'register',
+        registeredAt: new Date().toISOString()
+      };
+
+      const idx = this.registeredStudents.findIndex(s => s.email.toLowerCase() === email);
+      if (idx !== -1) {
+        this.registeredStudents[idx] = { ...this.registeredStudents[idx], ...newStudent };
+      } else {
+        this.registeredStudents.unshift(newStudent);
+      }
+
+      this.currentRole = 'student';
+      this.studentUser = newStudent;
+      this.authModal.form = { name: '', email: '', faculty: '', nim: '' };
+      this.authModal.isOpen = false;
+
+      this.showToast(`Registrasi mahasiswa berhasil! Selamat datang, ${name}`);
+      this.$nextTick(() => lucide.createIcons());
+    },
+
+    logoutStudent() {
+      this.studentUser = null;
+      this.showToast("Kamu telah keluar dari akun mahasiswa.");
+      this.$nextTick(() => lucide.createIcons());
     },
 
     showToast(message, type = 'success') {
@@ -123,6 +290,7 @@ document.addEventListener('alpine:init', () => {
         date: this.bookingForm.date,
         time: this.bookingForm.time.trim(),
         topic: this.bookingForm.topic.trim(),
+        studentEmail: this.studentUser?.email || '',
         status: 'Pending',
         source: 'curhatdeck',
         submittedAt: new Date().toISOString()
