@@ -25,6 +25,9 @@ function appData() {
     bookingForm: {
       name: "",
       contact: "",
+      faculty: "",
+      mode: "Offline", // "Offline" | "Online"
+      platform: "Google Meet",
       location: "",
       date: "",
       time: "",
@@ -68,6 +71,10 @@ function appData() {
           "Online"
         );
 
+        if (this.studentUser?.faculty && !this.bookingForm.faculty) {
+          this.bookingForm.faculty = this.studentUser.faculty;
+        }
+
         this.$watch("chatMessages", (val) => {
           LocalStore.set(LocalStore.KEYS.CHAT_MESSAGES, val);
         });
@@ -77,6 +84,9 @@ function appData() {
         this.$watch("studentUser", (val) => {
           if (val) {
             LocalStore.set(LocalStore.KEYS.STUDENT_USER, val);
+            if (val.faculty && !this.bookingForm.faculty) {
+              this.bookingForm.faculty = val.faculty;
+            }
           } else {
             LocalStore.remove(LocalStore.KEYS.STUDENT_USER);
           }
@@ -158,10 +168,21 @@ function appData() {
         return;
       }
 
+      const registeredFaculty = (this.authModal.registerForm.faculty || "").trim();
+      const registeredEmail = (this.authModal.registerForm.email || "").trim();
+
       this.studentUser = {
         name,
-        email: `${name.toLowerCase().replace(/\s+/g, ".")}@polimedia.ac.id`
+        email:
+          registeredEmail ||
+          `${name.toLowerCase().replace(/\s+/g, ".")}@polimedia.ac.id`,
+        faculty: registeredFaculty || this.studentUser?.faculty || ""
       };
+
+      if (this.studentUser.faculty && !this.bookingForm.faculty) {
+        this.bookingForm.faculty = this.studentUser.faculty;
+      }
+
       this.authModal.loginForm.password = "";
       this.authModal.isOpen = false;
       this.showToast(`Selamat datang, ${name}! Chat AI & jadwal booking sudah terbuka.`);
@@ -179,6 +200,9 @@ function appData() {
       }
 
       this.authModal.loginForm.name = name;
+      if (faculty) {
+        this.bookingForm.faculty = faculty;
+      }
       this.authModal.registerForm = {
         name: "",
         email: "",
@@ -265,7 +289,14 @@ function appData() {
 
       const name = (this.bookingForm?.name || "").trim();
       const contact = (this.bookingForm?.contact || "").trim();
-      const location = (this.bookingForm?.location || "").trim() || "Ruang Konseling";
+      const faculty = (
+        this.bookingForm?.faculty ||
+        this.studentUser?.faculty ||
+        "-"
+      ).trim();
+      const mode = this.bookingForm?.mode === "Online" ? "Online" : "Offline";
+      const platform = mode === "Online" ? "Google Meet" : "";
+      const rawLocation = (this.bookingForm?.location || "").trim();
       const date = this.bookingForm?.date || "";
       const time = (this.bookingForm?.time || "").trim();
       const topic = (this.bookingForm?.topic || "").trim();
@@ -302,6 +333,11 @@ function appData() {
       const bookingId = String(timestampId);
       const schedule = `${date}${date && time ? " " : ""}${time ? `(${time} WIB)` : ""}`.trim();
 
+      const location =
+        mode === "Online"
+          ? `Online (Google Meet)${rawLocation ? ` - ${rawLocation}` : ""}`
+          : rawLocation || "Ruang Konseling";
+
       const newBooking = {
         id: timestampId,
         bookingId,
@@ -309,6 +345,11 @@ function appData() {
         name,
         contact,
         contactType,
+        faculty,
+        major: faculty,
+        mode,
+        platform,
+        meetingLink: "",
         location,
         date,
         time,
@@ -324,6 +365,9 @@ function appData() {
       this.bookingForm = {
         name: "",
         contact: "",
+        faculty: this.studentUser?.faculty || "",
+        mode: "Offline",
+        platform: "Google Meet",
         location: "",
         date: "",
         time: "",
@@ -370,6 +414,14 @@ function appData() {
           throw new Error(data?.error || `HTTP ${res.status}`);
         }
 
+        if (data?.meetingLink) {
+          newBooking.meetingLink = String(data.meetingLink).trim();
+        }
+        if (data?.bookingId) {
+          newBooking.bookingId = String(data.bookingId);
+        }
+        this.bookings = [...this.bookings];
+
         this.showToast(`Permintaan booking terkirim & ${notifText}!`);
       } catch (err) {
         console.error("Booking submit error:", err);
@@ -388,10 +440,24 @@ function appData() {
       this.refreshIcons();
     },
 
+    updateMeetingLink(id, link) {
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
+      if (target) {
+        target.meetingLink = (link || "").trim();
+        this.bookings = [...this.bookings];
+        this.showToast(
+          target.meetingLink
+            ? "Link Google Meet disimpan."
+            : "Link Google Meet dikosongkan."
+        );
+      }
+    },
+
     updateBookingStatus(id, newStatus) {
       const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
       if (target) {
         target.status = newStatus;
+        this.bookings = [...this.bookings];
         this.showToast(`Status booking diubah menjadi ${newStatus}`);
       }
     },
