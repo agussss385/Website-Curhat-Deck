@@ -18,7 +18,7 @@ export default async function handler(req, res) {
           parts: [{ text: msg.text }]
         }));
 
-    const model = 'gemini-2.5-flash';
+    const model = 'gemini-3.8-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const payload = {
