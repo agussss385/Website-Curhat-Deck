@@ -1,9 +1,10 @@
 // Configuration File
 const CONFIG = {
- 
-  AI_CHAT_ENDPOINT: "https://curhatdeck.vercel.app/webhook/curhatdeck-routerr",
-  BOOKING_ENDPOINT: "https://curhatdeck.vercel.app/webhook/curhatdeck-routerr",
-  REQUEST_TIMEOUT_MS: 25000,
+  AI_CHAT_ENDPOINT: "https://<url-tunnel-kamu>.trycloudflare.com/webhook/curhatdeck-router",
+  BOOKING_ENDPOINT: "https://<url-tunnel-kamu>.trycloudflare.com/webhook/curhatdeck-router",
+  N8N_WEBHOOK_URL: "https://<url-tunnel-kamu>.trycloudflare.com/webhook/curhatdeck-router",
+  REQUEST_TIMEOUT_MS: 25000
+};
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di Polimedia (Politeknik Negeri Media Kreatif) pada platform CurhatDeck.
