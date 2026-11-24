@@ -1,26 +1,27 @@
 function appData() {
+  const initialWelcome = {
+    role: "model",
+    text: "Halo! Aku CurhatBuddy 🫂 Ada unek-unek soal kuliah, revisi, deadline, atau hal lain yang lagi bikin kepikiran? Cerita aja di sini, no judgment ya!"
+  };
+
   return {
-    // State utama & UI
-    currentRole: "student",
+    // Navigasi & Role (disesuaikan dengan index.html)
+    currentRole: "student", // "student" | "counselor"
+    activeTab: "ai-chat",   // "ai-chat" | "booking"
     counselorStatus: "Online",
     showSosModal: false,
-    activeTab: "chat",
-    isSubmittingBooking: false,
-    isSendingChat: false,
+
+    // User Mahasiswa
     studentUser: null,
+
+    // State Chat AI CurhatBuddy (disesuaikan dengan index.html & ai.js)
+    userInput: "",
+    isAiThinking: false,
+    chatMessages: [initialWelcome],
+
+    // State Booking Konseling
+    isSubmittingBooking: false,
     bookings: [],
-
-    // State Chat AI CurhatBuddy
-    chatInput: "",
-    chatMessages: [
-      {
-        id: 1,
-        sender: "ai",
-        text: "Halo! Aku CurhatBuddy 🫂 Ada unek-unek soal kuliah, revisi, deadline, atau hal lain yang lagi bikin kepikiran? Cerita aja di sini, no judgment ya!"
-      }
-    ],
-
-    // Form Booking Konseling
     bookingForm: {
       name: "",
       contact: "",
@@ -53,6 +54,41 @@ function appData() {
       }
     },
 
+    init() {
+      if (window.LocalStore) {
+        const savedChat = LocalStore.get(LocalStore.KEYS.CHAT_MESSAGES, null);
+        if (Array.isArray(savedChat) && savedChat.length > 0) {
+          this.chatMessages = savedChat;
+        }
+        this.bookings = LocalStore.get(LocalStore.KEYS.BOOKINGS, []);
+        this.studentUser = LocalStore.get(LocalStore.KEYS.STUDENT_USER, null);
+        this.counselorStatus = LocalStore.get(
+          LocalStore.KEYS.COUNSELOR_STATUS,
+          "Online"
+        );
+
+        this.$watch("chatMessages", (val) => {
+          LocalStore.set(LocalStore.KEYS.CHAT_MESSAGES, val);
+        });
+        this.$watch("bookings", (val) => {
+          LocalStore.set(LocalStore.KEYS.BOOKINGS, val);
+        });
+        this.$watch("studentUser", (val) => {
+          if (val) {
+            LocalStore.set(LocalStore.KEYS.STUDENT_USER, val);
+          } else {
+            LocalStore.remove(LocalStore.KEYS.STUDENT_USER);
+          }
+        });
+        this.$watch("counselorStatus", (val) => {
+          LocalStore.set(LocalStore.KEYS.COUNSELOR_STATUS, val);
+        });
+      }
+
+      this.refreshIcons();
+      this.scrollChatToBottom();
+    },
+
     showToast(message, type = "success") {
       this.toast.message = message;
       this.toast.type = type;
@@ -67,18 +103,37 @@ function appData() {
       }, 3500);
     },
 
-    toggleRole() {
+    refreshIcons() {
+      this.$nextTick(() => {
+        if (window.lucide && typeof window.lucide.createIcons === "function") {
+          window.lucide.createIcons();
+        }
+      });
+    },
+
+    scrollChatToBottom() {
+      this.$nextTick(() => {
+        const win = document.getElementById("chatWindow");
+        if (win) {
+          win.scrollTop = win.scrollHeight;
+        }
+      });
+    },
+
+    toggleRoleModal() {
       this.currentRole = this.currentRole === "student" ? "counselor" : "student";
       this.showToast(
         this.currentRole === "counselor"
           ? "Beralih ke Mode Konselor"
           : "Beralih ke Mode Mahasiswa"
       );
+      this.refreshIcons();
     },
 
     openAuthModal(mode = "login") {
       this.authModal.mode = mode;
       this.authModal.isOpen = true;
+      this.refreshIcons();
     },
 
     closeAuthModal() {
@@ -99,6 +154,7 @@ function appData() {
       this.authModal.loginForm.password = "";
       this.authModal.isOpen = false;
       this.showToast(`Selamat datang, ${name}!`);
+      this.refreshIcons();
     },
 
     registerStudent() {
@@ -118,89 +174,71 @@ function appData() {
         faculty: "",
         password: ""
       };
-      this.authModal.isOpen = false;
-      this.showToast("Akun mahasiswa berhasil didaftarkan!");
+      this.authModal.mode = "login";
+      this.showToast("Akun mahasiswa berhasil didaftarkan! Silakan login.");
+    },
+
+    logoutStudent() {
+      this.studentUser = null;
+      if (window.LocalStore) {
+        LocalStore.remove(LocalStore.KEYS.STUDENT_USER);
+      }
+      this.showToast("Kamu telah keluar dari akun mahasiswa.");
+      this.refreshIcons();
+    },
+
+    clearChat() {
+      this.chatMessages = [initialWelcome];
+      if (window.LocalStore) {
+        LocalStore.remove(LocalStore.KEYS.CHAT_MESSAGES);
+      }
+      this.showToast("Riwayat chat dibersihkan.");
+      this.scrollChatToBottom();
+      this.refreshIcons();
+    },
+
+    async sendQuickPrompt(promptText) {
+      this.activeTab = "ai-chat";
+      this.userInput = promptText;
+      this.refreshIcons();
+      await this.sendChatMessage();
     },
 
     async sendChatMessage() {
-      if (this.isSendingChat) return;
+      if (this.isAiThinking) return;
 
-      const text = (this.chatInput || "").trim();
+      const text = (this.userInput || "").trim();
       if (!text) return;
 
       this.chatMessages.push({
-        id: Date.now(),
-        sender: "user",
+        role: "user",
         text
       });
-      this.chatInput = "";
-      this.isSendingChat = true;
-
-      const endpoint =
-        typeof CONFIG !== "undefined" &&
-        (CONFIG.AI_CHAT_ENDPOINT || CONFIG.N8N_WEBHOOK_URL)
-          ? String(CONFIG.AI_CHAT_ENDPOINT || CONFIG.N8N_WEBHOOK_URL).trim()
-          : "";
-
-      if (
-        !endpoint ||
-        endpoint.includes("DOMAIN_N8N_KAMU") ||
-        endpoint.includes("<URL-HTTPS-N8N-KAMU>")
-      ) {
-        this.isSendingChat = false;
-        this.showToast("Endpoint AI chat belum dikonfigurasi di config.js.", "error");
-        return;
-      }
+      this.userInput = "";
+      this.isAiThinking = true;
+      this.scrollChatToBottom();
 
       try {
-        const controller = new AbortController();
-        const timeoutMs =
-          typeof CONFIG !== "undefined" && CONFIG.REQUEST_TIMEOUT_MS
-            ? Number(CONFIG.REQUEST_TIMEOUT_MS)
-            : 25000;
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            action: "chat",
-            message: text,
-            systemInstruction:
-              typeof CONFIG !== "undefined" && CONFIG.SYSTEM_INSTRUCTION
-                ? CONFIG.SYSTEM_INSTRUCTION
-                : "",
-            studentName: this.studentUser?.name || "Mahasiswa Anonim",
-            source: "curhatdeck"
-          }),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || data?.ok === false) {
-          throw new Error(data?.error || `HTTP ${res.status}`);
+        if (typeof fetchGeminiResponse !== "function") {
+          throw new Error("Klien AI (ai.js) belum termuat.");
         }
 
-        const replyText =
-          data?.reply ||
-          data?.message ||
-          data?.output ||
-          "Maaf, respons dari CurhatBuddy sedang kosong. Coba kirim ulang ya!";
+        const replyText = await fetchGeminiResponse(this.chatMessages);
 
         this.chatMessages.push({
-          id: Date.now() + 1,
-          sender: "ai",
-          text: String(replyText)
+          role: "model",
+          text: replyText
         });
+        this.scrollChatToBottom();
       } catch (err) {
         console.error("Chat error:", err);
-        this.showToast("Gagal terhubung ke CurhatBuddy. Coba lagi sebentar ya.", "error");
+        this.showToast(
+          err?.message || "Gagal terhubung ke CurhatBuddy. Coba lagi sebentar ya.",
+          "error"
+        );
       } finally {
-        this.isSendingChat = false;
+        this.isAiThinking = false;
+        this.refreshIcons();
       }
     },
 
@@ -293,6 +331,25 @@ function appData() {
       } finally {
         this.isSubmittingBooking = false;
       }
+    },
+
+    setCounselorStatus(status) {
+      this.counselorStatus = status;
+      this.showToast(`Status konselor diubah menjadi ${status}`);
+      this.refreshIcons();
+    },
+
+    updateBookingStatus(id, newStatus) {
+      const target = this.bookings.find((b) => b.id === id);
+      if (target) {
+        target.status = newStatus;
+        this.showToast(`Status booking diubah menjadi ${newStatus}`);
+      }
+    },
+
+    deleteBooking(id) {
+      this.bookings = this.bookings.filter((b) => b.id !== id);
+      this.showToast("Data booking dihapus.");
     }
   };
 }
