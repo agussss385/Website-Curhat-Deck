@@ -262,14 +262,41 @@
                 <input type="text" :disabled="!studentUser" x-model="bookingForm.name" required placeholder="Contoh: Raka / Prodi Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
               </div>
 
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kontak WhatsApp / Email</label>
-                <input type="text" :disabled="!studentUser" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kontak WhatsApp / Email</label>
+                  <input type="text" :disabled="!studentUser" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Jurusan / Prodi</label>
+                  <input type="text" :disabled="!studentUser" x-model="bookingForm.faculty" placeholder="Contoh: Teknologi Rekayasa Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+                </div>
               </div>
 
-              <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Tempat / Ruang Konseling</label>
-                <input type="text" :disabled="!studentUser" x-model="bookingForm.location" placeholder="Contoh: Ruang Konseling / Online (default: Ruang Konseling)" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Mode Konseling</label>
+                  <select :disabled="!studentUser" x-model="bookingForm.mode" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+                    <option value="Offline">Offline (Tatap Muka)</option>
+                    <option value="Online">Online (Google Meet)</option>
+                  </select>
+                </div>
+
+                <div x-show="bookingForm.mode !== 'Online'">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Tempat / Ruang Konseling</label>
+                  <input type="text" :disabled="!studentUser" x-model="bookingForm.location" placeholder="Default: Ruang Konseling" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
+                </div>
+
+                <div x-show="bookingForm.mode === 'Online'">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Platform Online</label>
+                  <input type="text" readonly value="Google Meet (Link diberikan konselor)" class="w-full bg-slate-800/70 border-2 border-black rounded-xl p-3 text-sm text-cyan-300 font-semibold">
+                </div>
+              </div>
+
+              <div x-show="bookingForm.mode === 'Online'">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Catatan Tambahan Online (Opsional)</label>
+                <input type="text" :disabled="!studentUser" x-model="bookingForm.location" placeholder="Contoh: Preferensi malam / catatan singkat untuk konselor" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white disabled:opacity-60">
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -348,9 +375,9 @@
               <thead class="bg-slate-800 text-xs font-bold uppercase tracking-wider text-slate-300 border-b-2 border-black">
                 <tr>
                   <th class="p-3">No. Seri</th>
-                  <th class="p-3">Nama/Inisial</th>
+                  <th class="p-3">Nama / Prodi</th>
                   <th class="p-3">Kontak</th>
-                  <th class="p-3">Tempat</th>
+                  <th class="p-3">Mode & Tempat / Meet</th>
                   <th class="p-3">Jadwal</th>
                   <th class="p-3">Topik Curhat</th>
                   <th class="p-3">Status</th>
@@ -359,11 +386,31 @@
               </thead>
               <tbody class="divide-y divide-slate-800">
                 <template x-for="(item, idx) in bookings" :key="item.bookingId || item.id || idx">
-                  <tr class="hover:bg-slate-800/50">
+                  <tr class="hover:bg-slate-800/50 align-top">
                     <td class="p-3 font-mono text-xs font-bold text-pink-400 whitespace-nowrap" x-text="item.bookingId || item.id || '-'"></td>
-                    <td class="p-3 font-bold text-white" x-text="item.name"></td>
+                    <td class="p-3">
+                      <div class="font-bold text-white" x-text="item.name"></div>
+                      <div class="text-[11px] text-cyan-300" x-text="item.faculty || item.major || '-'"></div>
+                    </td>
                     <td class="p-3 text-slate-300 font-mono text-xs" x-text="item.contact"></td>
-                    <td class="p-3 text-slate-300 text-xs" x-text="item.location || 'Ruang Konseling'"></td>
+                    <td class="p-3 text-xs space-y-1.5">
+                      <div class="text-slate-200 font-semibold" x-text="item.location || (item.mode === 'Online' ? 'Online (Google Meet)' : 'Ruang Konseling')"></div>
+                      <template x-if="item.mode === 'Online'">
+                        <div class="space-y-1">
+                          <input type="text"
+                                 :value="item.meetingLink || ''"
+                                 @change="updateMeetingLink(item.bookingId || item.id, $event.target.value)"
+                                 placeholder="Tempel link Google Meet..."
+                                 class="w-48 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-[11px] text-cyan-200 focus:outline-none focus:border-cyan-400">
+                          <div x-show="item.meetingLink">
+                            <a :href="item.meetingLink" target="_blank" rel="noopener noreferrer" class="text-[11px] text-cyan-300 underline break-all" x-text="item.meetingLink"></a>
+                          </div>
+                          <div x-show="!item.meetingLink" class="text-[11px] text-amber-300 italic">
+                            Menunggu link konselor
+                          </div>
+                        </div>
+                      </template>
+                    </td>
                     <td class="p-3 text-slate-300 text-xs whitespace-nowrap" x-text="item.schedule || `${item.date} (${item.time})`"></td>
                     <td class="p-3 text-slate-400 text-xs max-w-xs truncate" x-text="item.topic"></td>
                     <td class="p-3">
