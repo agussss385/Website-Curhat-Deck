@@ -14,7 +14,13 @@ async function fetchGeminiResponse(chatHistory) {
         ? String(CONFIG.AI_CHAT_ENDPOINT || CONFIG.N8N_WEBHOOK_URL).trim()
         : '';
 
-    const endpoint = rawEndpoint || '/api/chat';
+    if (
+      !rawEndpoint ||
+      rawEndpoint.includes('DOMAIN_N8N_KAMU') ||
+      rawEndpoint.includes('<URL-HTTPS-N8N-KAMU>')
+    ) {
+      throw new Error('Endpoint AI chat belum diatur di config.js.');
+    }
 
     const cleanHistory = (Array.isArray(chatHistory) ? chatHistory : [])
       .filter((msg) => msg && typeof msg.text === 'string' && msg.text.trim() !== '')
@@ -37,7 +43,7 @@ async function fetchGeminiResponse(chatHistory) {
         ? CONFIG.SYSTEM_INSTRUCTION.trim()
         : '';
 
-    const response = await fetch(endpoint, {
+    const response = await fetch(rawEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,6 +68,7 @@ async function fetchGeminiResponse(chatHistory) {
       data?.reply ||
       data?.text ||
       data?.output ||
+      data?.message ||
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       '';
 
@@ -79,3 +86,5 @@ async function fetchGeminiResponse(chatHistory) {
     clearTimeout(timeoutId);
   }
 }
+
+window.fetchGeminiResponse = fetchGeminiResponse;
