@@ -251,7 +251,7 @@ function appData() {
 
     getWebhookEndpoint() {
       // Ganti dengan URL Production Webhook n8n kamu yang asli
-      const FALLBACK_WEBHOOK_URL = "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
+      const FALLBACK_WEBHOOK_URL = "https://URL-WEBHOOK-N8N-KAMU";
 
       const cfg =
         typeof window !== "undefined" && window.CONFIG
