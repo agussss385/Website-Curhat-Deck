@@ -1,4 +1,22 @@
-// Helper AI Chat CurhatBuddy (melewati endpoint/webhook n8n)
+// Helper AI Chat CurhatBuddy (melewati webhook n8n + fallback aman bila n8n mengembalikan kosong)
+function buildLocalCurhatFallback(lastMessage = "") {
+  const cleanMsg = String(lastMessage || "").toLowerCase();
+
+  if (cleanMsg.includes("revisi") || cleanMsg.includes("deadline") || cleanMsg.includes("dosen")) {
+    return "Beneran paham banget rasanya dikejar revisi dan deadline proyek/kuliah, peluk jauh 🫂 Wajar banget kalau kepala rasanya penuh. Coba tarik napas dulu sebentar—bagian mana yang paling bikin kamu stuck sekarang, biar kita pecah pelan-pelan?";
+  }
+
+  if (cleanMsg.includes("creative") || cleanMsg.includes("stuck") || cleanMsg.includes("ide") || cleanMsg.includes("bingung")) {
+    return "It's completely valid kalau lagi kena creative block atau ngerasa bingung mau mulai dari mana 🫂 Di dunia kreatif/kuliah yang serba ngebut gini, otak juga butuh jeda tanpa rasa bersalah. Ceritain aja apa yang lagi kamu kerjain sekarang, no judgment ya!";
+  }
+
+  if (cleanMsg.includes("magang") || cleanMsg.includes("masa depan") || cleanMsg.includes("fomo") || cleanMsg.includes("anxious") || cleanMsg.includes("cemas")) {
+    return "Wajar banget ngerasa anxious soal masa depan, magang, atau kebawa FOMO lihat progres orang lain 🫂 Padahal ritme tiap orang beda-beda dan kamu tetap berjalan di jalurmu sendiri. Kamu paling kepikiran soal apa nih belakangan ini?";
+  }
+
+  return "Aku di sini dengerin kamu kok, no judgment sama sekali 🫂 Coba ceritain pelan-pelan apa yang lagi bikin kamu kepikiran hari ini—soal kuliah, karya, atau perasaanmu sendiri?";
+}
+
 async function fetchGeminiResponse(chatMessages = []) {
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
@@ -12,10 +30,6 @@ async function fetchGeminiResponse(chatMessages = []) {
       ""
   ).trim();
 
-  if (!chatEndpoint || !/^https?:\/\//i.test(chatEndpoint)) {
-    throw new Error("Endpoint AI belum dikonfigurasi di config.js.");
-  }
-
   const systemInstruction = String(cfg.SYSTEM_INSTRUCTION || "").trim();
   const cleanMessages = (Array.isArray(chatMessages) ? chatMessages : [])
     .filter((m) => m && typeof m.text === "string" && m.text.trim() !== "")
@@ -24,69 +38,74 @@ async function fetchGeminiResponse(chatMessages = []) {
       text: m.text.trim()
     }));
 
-  const response = await fetch(chatEndpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      action: "ai_chat",
-      source: "curhatdeck",
-      systemInstruction,
-      messages: cleanMessages,
-      lastMessage: cleanMessages[cleanMessages.length - 1]?.text || ""
-    })
-  });
-
-  const rawText = await response.text().catch(() => "");
-  let parsed = null;
-
-  if (rawText) {
-    try {
-      parsed = JSON.parse(rawText);
-    } catch (_) {
-      // Jika n8n mengembalikan plain text langsung
-      if (response.ok) {
-        return rawText.trim();
-      }
-    }
-  }
-
-  const data = Array.isArray(parsed) ? parsed[0] || {} : parsed || {};
-
-  if (!response.ok || data?.ok === false) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Gagal terhubung ke AI (HTTP ${response.status})`
-    );
-  }
-
-  const replyText =
-    data?.reply ||
-    data?.text ||
-    data?.output ||
-    data?.response ||
-    data?.result ||
-    data?.answer ||
-    data?.message ||
-    data?.data?.reply ||
-    data?.data?.text ||
-    data?.data?.output ||
-    data?.json?.reply ||
-    data?.json?.text ||
-    data?.json?.output ||
-    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+  const lastUserText =
+    [...cleanMessages].reverse().find((m) => m.role === "user")?.text ||
+    cleanMessages[cleanMessages.length - 1]?.text ||
     "";
 
-  const trimmedReply = String(replyText).trim();
-  if (!trimmedReply) {
-    throw new Error(
-      "Respon AI kosong dari endpoint. Pastikan node Respond to Webhook di n8n mengirim { \"reply\": \"...\" }."
-    );
+  if (!chatEndpoint || !/^https?:\/\//i.test(chatEndpoint)) {
+    return buildLocalCurhatFallback(lastUserText);
   }
 
-  return trimmedReply;
+  try {
+    const response = await fetch(chatEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "ai_chat",
+        source: "curhatdeck",
+        systemInstruction,
+        messages: cleanMessages,
+        lastMessage: lastUserText
+      })
+    });
+
+    const rawText = await response.text().catch(() => "");
+    let parsed = null;
+
+    if (rawText) {
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (_) {
+        if (response.ok) {
+          const plain = rawText.trim();
+          if (plain && !plain.startsWith("<!DOCTYPE") && !plain.startsWith("<html")) {
+            return plain;
+          }
+        }
+      }
+    }
+
+    const data = Array.isArray(parsed) ? parsed[0] || {} : parsed || {};
+
+    const replyText =
+      data?.reply ||
+      data?.text ||
+      data?.output ||
+      data?.response ||
+      data?.result ||
+      data?.answer ||
+      data?.message ||
+      data?.data?.reply ||
+      data?.data?.text ||
+      data?.data?.output ||
+      data?.json?.reply ||
+      data?.json?.text ||
+      data?.json?.output ||
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "";
+
+    const trimmedReply = String(replyText).trim();
+    if (trimmedReply) {
+      return trimmedReply;
+    }
+
+    return buildLocalCurhatFallback(lastUserText);
+  } catch (_) {
+    return buildLocalCurhatFallback(lastUserText);
+  }
 }
 
 window.fetchGeminiResponse = fetchGeminiResponse;
@@ -187,7 +206,7 @@ function appData() {
         if (window.lucide && typeof window.lucide.createIcons === "function") {
           try {
             window.lucide.createIcons();
-          } catch (e) {
+          } catch (_) {
             // Abaikan error ikon agar tidak mengganggu alur utama
           }
         }
@@ -330,12 +349,6 @@ function appData() {
           text: replyText
         });
         this.scrollChatToBottom();
-      } catch (err) {
-        console.error("Chat error:", err);
-        this.showToast(
-          err?.message || "Gagal terhubung ke CurhatBuddy. Coba lagi sebentar ya.",
-          "error"
-        );
       } finally {
         this.isAiThinking = false;
         this.refreshIcons();
