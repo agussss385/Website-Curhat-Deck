@@ -3,7 +3,8 @@ const CONFIG = {
   AI_CHAT_ENDPOINT: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
   BOOKING_ENDPOINT: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
   N8N_WEBHOOK_URL: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
-  REQUEST_TIMEOUT_MS: 25000
+  REQUEST_TIMEOUT_MS: 25000,
+  SYSTEM_INSTRUCTION: ""
 };
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
