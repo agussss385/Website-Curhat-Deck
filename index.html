@@ -4,28 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CurhatDeck - Venting Zone Ala Gen-Z</title>
-  
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  
+
   <!-- Custom Style -->
-  <link rel="stylesheet" href="assets/css/styles.css">
-  
+  <link rel="stylesheet" href="./assets/css/styles.css">
+
   <!-- Alpine.js (Defer) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-violet-950 text-slate-100 min-h-screen flex flex-col font-sans relative selection:bg-pink-500 selection:text-white" x-data="appData()">
 
   <!-- Toast Notification -->
-  <div x-show="toast.show" 
+  <div x-show="toast.show"
        x-transition:enter="transition ease-out duration-300 transform"
        x-transition:enter-start="translate-y-[-20px] opacity-0"
        x-transition:enter-end="translate-y-0 opacity-100"
@@ -42,7 +42,7 @@
   <!-- Navbar -->
   <header class="border-b-4 border-black bg-slate-900 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-3 cursor-pointer" @click="activeTab = 'ai-chat'">
+      <div class="flex items-center gap-3 cursor-pointer" @click="activeTab = 'ai-chat'; refreshIcons()">
         <div class="w-10 h-10 rounded-xl bg-pink-500 border-2 border-black flex items-center justify-center font-black text-xl text-black shadow-[2px_2px_0px_0px_#000]">
           CD
         </div>
@@ -81,13 +81,13 @@
         </template>
 
         <!-- Role Switcher Button -->
-        <button @click="toggleRoleModal()" class="px-3.5 py-2 bg-yellow-300 hover:bg-yellow-400 text-black font-extrabold text-xs sm:text-sm rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-2">
+        <button type="button" @click="toggleRoleModal()" class="px-3.5 py-2 bg-yellow-300 hover:bg-yellow-400 text-black font-extrabold text-xs sm:text-sm rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-2">
           <i data-lucide="user-check" class="w-4 h-4"></i>
           <span x-text="currentRole === 'student' ? 'Login Konselor' : 'Mode Mahasiswa'"></span>
         </button>
 
         <!-- Emergency SOS Button -->
-        <button @click="showSosModal = true" class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all flex items-center gap-1.5">
+        <button type="button" @click="showSosModal = true; refreshIcons()" class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white font-black text-xs sm:text-sm rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] transition-all flex items-center gap-1.5">
           <i data-lucide="siren" class="w-4 h-4"></i>
           <span>SOS</span>
         </button>
@@ -97,7 +97,7 @@
 
   <!-- Main Content Container -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
-    
+
     <!-- MODE MAHASISWA -->
     <template x-if="currentRole === 'student'">
       <div class="space-y-6">
@@ -107,13 +107,13 @@
             <span class="bg-yellow-300 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black inline-block mb-3 uppercase tracking-wider">No Judgment Zone 🤫</span>
             <h2 class="text-3xl sm:text-5xl font-black font-space leading-tight mb-3">Isi Kepala Lagi Penuh & Overthinking?</h2>
             <p class="text-slate-900 font-semibold text-base sm:text-lg mb-6">Tumpahin semua di sini. Ngobrol bareng Gemini AI 24/7 atau request sesi curhat 1-on-1 langsung bareng konselor.</p>
-            
+
             <div class="flex flex-wrap gap-3">
-              <button @click="activeTab = 'ai-chat'" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+              <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
                 <i data-lucide="bot" class="w-5 h-5"></i>
                 Curhat ke Gemini AI
               </button>
-              <button @click="activeTab = 'booking'" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+              <button type="button" @click="activeTab = 'booking'; refreshIcons()" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
                 Booking Sesi 1-on-1
               </button>
@@ -123,10 +123,10 @@
 
         <!-- Navigation Tabs -->
         <div class="flex gap-2 border-b-2 border-slate-800 pb-2 overflow-x-auto">
-          <button @click="activeTab = 'ai-chat'" :class="activeTab === 'ai-chat' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
+          <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" :class="activeTab === 'ai-chat' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
             <i data-lucide="sparkles" class="w-4 h-4"></i> AI Peer Counselor
           </button>
-          <button @click="activeTab = 'booking'" :class="activeTab === 'booking' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
+          <button type="button" @click="activeTab = 'booking'; refreshIcons()" :class="activeTab === 'booking' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
             <i data-lucide="user-heart" class="w-4 h-4"></i> Sesi Privat Konselor
           </button>
         </div>
@@ -143,7 +143,7 @@
                 <span class="text-[11px] text-slate-400">Siap dengerin 24/7 tanpa nge-judge</span>
               </div>
             </div>
-            <button @click="clearChat()" class="text-xs text-red-400 hover:underline flex items-center gap-1 font-semibold">
+            <button type="button" @click="clearChat()" class="text-xs text-red-400 hover:underline flex items-center gap-1 font-semibold">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Chat
             </button>
           </div>
@@ -151,9 +151,9 @@
           <!-- Quick Prompts -->
           <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
             <span class="text-slate-500 font-bold whitespace-nowrap">Topic Quick-Pick:</span>
-            <button @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi & Deadline</button>
-            <button @click="sendQuickPrompt('Lagi kena creative block dan burnout pas ngerjain karya/portofolio')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎨 Creative Block</button>
-            <button @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang & Future Anxiety</button>
+            <button type="button" @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi & Deadline</button>
+            <button type="button" @click="sendQuickPrompt('Lagi kena creative block dan burnout pas ngerjain karya/portofolio')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎨 Creative Block</button>
+            <button type="button" @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang & Future Anxiety</button>
           </div>
 
           <!-- Chat History Window -->
@@ -163,7 +163,7 @@
                 <div x-show="msg.role === 'model'" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex-shrink-0 flex items-center justify-center text-black font-bold">
                   <i data-lucide="bot" class="w-4 h-4"></i>
                 </div>
-                <div class="max-w-[80%] rounded-2xl p-4 border-2 border-black text-sm leading-relaxed" 
+                <div class="max-w-[80%] rounded-2xl p-4 border-2 border-black text-sm leading-relaxed"
                      :class="msg.role === 'user' ? 'bg-pink-500 text-black font-medium shadow-[3px_3px_0px_0px_#000]' : 'bg-slate-800 text-slate-100 shadow-[3px_3px_0px_0px_#000]'">
                   <p class="whitespace-pre-line" x-text="msg.text"></p>
                 </div>
@@ -253,9 +253,9 @@
           <!-- Status Toggle -->
           <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-2xl border-2 border-black">
             <span class="text-xs font-bold text-slate-300 pl-2">Status Kamu:</span>
-            <button @click="setCounselorStatus('Online')" :class="counselorStatus === 'Online' ? 'bg-emerald-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Online</button>
-            <button @click="setCounselorStatus('Sibuk')" :class="counselorStatus === 'Sibuk' ? 'bg-amber-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Sibuk</button>
-            <button @click="setCounselorStatus('Offline')" :class="counselorStatus === 'Offline' ? 'bg-slate-600 text-white font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Offline</button>
+            <button type="button" @click="setCounselorStatus('Online')" :class="counselorStatus === 'Online' ? 'bg-emerald-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Online</button>
+            <button type="button" @click="setCounselorStatus('Sibuk')" :class="counselorStatus === 'Sibuk' ? 'bg-amber-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Sibuk</button>
+            <button type="button" @click="setCounselorStatus('Offline')" :class="counselorStatus === 'Offline' ? 'bg-slate-600 text-white font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Offline</button>
           </div>
         </div>
 
@@ -294,9 +294,9 @@
                             x-text="item.status"></span>
                     </td>
                     <td class="p-3 text-right space-x-1">
-                      <button x-show="item.status === 'Pending'" @click="updateBookingStatus(item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
-                      <button x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
-                      <button @click="deleteBooking(item.id)" class="px-2 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
+                      <button type="button" x-show="item.status === 'Pending'" @click="updateBookingStatus(item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
+                      <button type="button" x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
+                      <button type="button" @click="deleteBooking(item.id)" class="px-2 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
                     </td>
                   </tr>
                 </template>
@@ -379,12 +379,12 @@
 
   <!-- SOS Emergency Modal -->
   <div x-show="showSosModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-    <div class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ef4444] space-y-4">
+    <div @click.outside="showSosModal = false" class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ef4444] space-y-4">
       <div class="flex justify-between items-start">
         <h3 class="text-xl font-black font-space text-red-400 flex items-center gap-2">
           <i data-lucide="siren" class="w-6 h-6"></i> Bantuan Darurat (Hotline)
         </h3>
-        <button @click="showSosModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
+        <button type="button" @click="showSosModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
         Jika kamu atau temanmu berada dalam situasi krisis kesehatan mental yang membutuhkan pertolongan cepat, jangan ragu untuk menghubungi layanan resmi berikut:
@@ -393,7 +393,7 @@
         <a href="tel:119" class="block p-3 bg-red-500/20 border-2 border-red-500 rounded-xl text-center font-bold text-red-300 hover:bg-red-500/30">
           📞 Hotline Layanan Sejiwa: 119 (Ext. 8)
         </a>
-        <a href="https://www.intothelightid.org/tentang-bunuh-diri/layanan-konseling-2/" target="_blank" class="block p-3 bg-slate-800 border-2 border-black rounded-xl text-center font-bold text-xs text-cyan-300 hover:bg-slate-700">
+        <a href="https://www.intothelightid.org/tentang-bunuh-diri/layanan-konseling-2/" target="_blank" rel="noopener noreferrer" class="block p-3 bg-slate-800 border-2 border-black rounded-xl text-center font-bold text-xs text-cyan-300 hover:bg-slate-700">
           🌐 Layanan Crisis Into The Light Indonesia
         </a>
       </div>
@@ -401,9 +401,16 @@
   </div>
 
   <!-- JavaScript Project Files -->
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/store.js"></script>
-  <script src="assets/js/ai.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/store.js"></script>
+  <script src="./assets/js/ai.js"></script>
+  <script src="./assets/js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
 </body>
 </html>
