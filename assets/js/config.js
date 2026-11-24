@@ -5,7 +5,6 @@ const CONFIG = {
   N8N_WEBHOOK_URL: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
   REQUEST_TIMEOUT_MS: 25000,
   SYSTEM_INSTRUCTION: ""
-};
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di Polimedia (Politeknik Negeri Media Kreatif) pada platform CurhatDeck.
