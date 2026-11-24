@@ -18,9 +18,6 @@
   
   <!-- Custom Style -->
   <link rel="stylesheet" href="assets/css/styles.css">
-
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <!-- Alpine.js (Defer) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -154,9 +151,9 @@
           <!-- Quick Prompts -->
           <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
             <span class="text-slate-500 font-bold whitespace-nowrap">Topic Quick-Pick:</span>
-            <button @click="sendQuickPrompt('Lagi burn out banget sama tugas kuliah dan skripsi 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎓 Burnout Skripsi</button>
-            <button @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan dan karier')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Future Anxiety</button>
-            <button @click="sendQuickPrompt('Merasa FOMO dan kesepian di lingkungan kampus')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💔 Kesepian/FOMO</button>
+            <button @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi & Deadline</button>
+            <button @click="sendQuickPrompt('Lagi kena creative block dan burnout pas ngerjain karya/portofolio')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎨 Creative Block</button>
+            <button @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang & Future Anxiety</button>
           </div>
 
           <!-- Chat History Window -->
@@ -204,12 +201,12 @@
             <form @submit.prevent="submitBooking()" class="space-y-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama / Inisial (Anonim Boleh)</label>
-                <input type="text" x-model="bookingForm.name" required placeholder="Contoh: Alex / Mahasiswa Fasilkom" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                <input type="text" x-model="bookingForm.name" required placeholder="Contoh: Raka / Prodi Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
               </div>
 
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kontak WhatsApp / Email</label>
-                <input type="text" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@univ.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
+                <input type="text" x-model="bookingForm.contact" required placeholder="0812xxxx atau email@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white">
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -231,7 +228,7 @@
 
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Gambaran Singkat Hal yang Ingin Dicurhatkan</label>
-                <textarea x-model="bookingForm.topic" rows="3" required placeholder="Ceritain sedikit yang lagi dirasain..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white"></textarea>
+                <textarea x-model="bookingForm.topic" rows="3" required placeholder="Ceritain sedikit yang lagi dirasain (revisi menumpuk, burnout karya, dll)..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm focus:border-pink-400 text-white"></textarea>
               </div>
 
               <button type="submit" :disabled="isSubmittingBooking" class="w-full py-3.5 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-base disabled:opacity-60">
@@ -314,7 +311,7 @@
     </template>
   </main>
 
-  <!-- Modal Login Google & Register Mahasiswa -->
+  <!-- Modal Login & Register Mahasiswa -->
   <div x-show="authModal.isOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
     <div @click.outside="closeAuthModal()" class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ec4899] space-y-4">
       <div class="flex justify-between items-center">
@@ -324,48 +321,57 @@
 
       <!-- Switch Login / Register -->
       <div class="grid grid-cols-2 gap-2 bg-slate-800 p-1.5 rounded-2xl border-2 border-black text-xs font-extrabold">
-        <button type="button" @click="authModal.mode = 'login'; $nextTick(() => initGoogleSignIn())"
+        <button type="button" @click="authModal.mode = 'login'"
                 :class="authModal.mode === 'login' ? 'bg-cyan-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]' : 'text-slate-300 hover:text-white'"
                 class="py-2 rounded-xl transition-all">
-          Login Google
+          Login
         </button>
         <button type="button" @click="authModal.mode = 'register'"
                 :class="authModal.mode === 'register' ? 'bg-yellow-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]' : 'text-slate-300 hover:text-white'"
                 class="py-2 rounded-xl transition-all">
-          Register Akun
+          Register
         </button>
       </div>
 
-      <!-- Tab Login Google -->
-      <div x-show="authModal.mode === 'login'" class="space-y-4 py-2 text-center">
-        <p class="text-xs text-slate-300 leading-relaxed">
-          Masuk cepat memakai akun Google kamu agar profil dan kontak otomatis tersinkron saat booking sesi.
+      <!-- Form Login (Nama & Password) -->
+      <form x-show="authModal.mode === 'login'" @submit.prevent="loginStudent()" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama</label>
+          <input type="text" x-model="authModal.loginForm.name" required placeholder="Masukkan nama kamu..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password</label>
+          <input type="password" x-model="authModal.loginForm.password" required placeholder="Masukkan password..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+        </div>
+        <button type="submit" class="w-full py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-sm">
+          Masuk ke CurhatDeck 🚀
+        </button>
+        <p class="text-xs text-slate-400 text-center">
+          Belum punya akun?
+          <button type="button" @click="authModal.mode = 'register'" class="text-yellow-300 font-bold underline">Daftar di sini</button>
         </p>
-        <div id="googleSignInBtn" class="flex justify-center min-h-[44px]"></div>
-      </div>
+      </form>
 
-      <!-- Tab Register Mahasiswa -->
+      <!-- Form Register (Nama dll -> Kembali ke Login) -->
       <form x-show="authModal.mode === 'register'" @submit.prevent="registerStudent()" class="space-y-3">
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama Lengkap / Inisial *</label>
-          <input type="text" x-model="authModal.form.name" required placeholder="Contoh: Alex Pratama" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama *</label>
+          <input type="text" x-model="authModal.registerForm.name" required placeholder="Contoh: Raka Pratama" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Email *</label>
-          <input type="email" x-model="authModal.form.email" required placeholder="nama@univ.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Email / Kontak</label>
+          <input type="text" x-model="authModal.registerForm.email" placeholder="nama@polimedia.ac.id atau 0812xxxx" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Fakultas / Jurusan</label>
-            <input type="text" x-model="authModal.form.faculty" placeholder="Fasilkom / Teknik" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
-          </div>
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">NIM (Opsional)</label>
-            <input type="text" x-model="authModal.form.nim" placeholder="2301xxxx" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
-          </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Jurusan / Prodi</label>
+          <input type="text" x-model="authModal.registerForm.faculty" placeholder="Contoh: Desain Grafis / Multimedia / Teknologi Rekayasa Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password *</label>
+          <input type="password" x-model="authModal.registerForm.password" required placeholder="Buat password..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
         </div>
         <button type="submit" class="w-full py-3 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-sm">
-          Daftar & Masuk Mahasiswa 🚀
+          Daftar & Kembali ke Login ✅
         </button>
       </form>
     </div>
