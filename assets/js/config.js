@@ -1,8 +1,8 @@
 // Configuration File
 const CONFIG = {
-  AI_CHAT_ENDPOINT: "https://<url-tunnel-kamu>.trycloudflare.com/webhook/curhatdeck-router",
-  BOOKING_ENDPOINT: "https://<url-tunnel-kamu>.trycloudflare.com/webhook/curhatdeck-router",
-  N8N_WEBHOOK_URL: "https://<url-tunnel-kamu>.trycloudflare.com/webhook/curhatdeck-router",
+  AI_CHAT_ENDPOINT: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
+  BOOKING_ENDPOINT: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
+  N8N_WEBHOOK_URL: "https://searching-thou-prospect-forecasts.trycloudflare.com/webhook/curhatdeck-router",
   REQUEST_TIMEOUT_MS: 25000
 };
 
