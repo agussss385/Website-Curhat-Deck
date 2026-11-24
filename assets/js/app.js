@@ -25,6 +25,7 @@ function appData() {
     bookingForm: {
       name: "",
       contact: "",
+      location: "",
       date: "",
       time: "",
       topic: ""
@@ -264,6 +265,7 @@ function appData() {
 
       const name = (this.bookingForm?.name || "").trim();
       const contact = (this.bookingForm?.contact || "").trim();
+      const location = (this.bookingForm?.location || "").trim() || "Ruang Konseling";
       const date = this.bookingForm?.date || "";
       const time = (this.bookingForm?.time || "").trim();
       const topic = (this.bookingForm?.topic || "").trim();
@@ -296,14 +298,21 @@ function appData() {
         notifText = "notifikasi WA diproses";
       }
 
+      const timestampId = Date.now();
+      const bookingId = String(timestampId);
+      const schedule = `${date}${date && time ? " " : ""}${time ? `(${time} WIB)` : ""}`.trim();
+
       const newBooking = {
-        id: Date.now(),
+        id: timestampId,
+        bookingId,
         action: "booking",
         name,
         contact,
         contactType,
+        location,
         date,
         time,
+        schedule,
         topic,
         studentEmail: this.studentUser?.email || "",
         status: "Pending",
@@ -315,6 +324,7 @@ function appData() {
       this.bookingForm = {
         name: "",
         contact: "",
+        location: "",
         date: "",
         time: "",
         topic: ""
@@ -379,7 +389,7 @@ function appData() {
     },
 
     updateBookingStatus(id, newStatus) {
-      const target = this.bookings.find((b) => b.id === id);
+      const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
       if (target) {
         target.status = newStatus;
         this.showToast(`Status booking diubah menjadi ${newStatus}`);
@@ -387,7 +397,7 @@ function appData() {
     },
 
     deleteBooking(id) {
-      this.bookings = this.bookings.filter((b) => b.id !== id);
+      this.bookings = this.bookings.filter((b) => b.id !== id && b.bookingId !== id);
       this.showToast("Data booking dihapus.");
     }
   };
