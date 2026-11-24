@@ -13,18 +13,24 @@ export default async function handler(req, res) {
 
     const contents = Array.isArray(rawContents) && rawContents.length > 0
       ? rawContents
-      : messages.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        }));
+      : messages
+          .filter(msg => msg && typeof msg.text === 'string' && msg.text.trim() !== '')
+          .map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text.trim() }]
+          }));
+
+    if (contents.length === 0) {
+      return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
+    }
 
     const model = 'gemini-3.8-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const payload = {
       contents,
-      ...(systemInstruction
-        ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
+      ...(typeof systemInstruction === 'string' && systemInstruction.trim()
+        ? { systemInstruction: { parts: [{ text: systemInstruction.trim() }] } }
         : {})
     };
 
@@ -34,11 +40,19 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload)
     });
 
-    const geminiData = await geminiRes.json();
+    const rawText = await geminiRes.text();
+    let geminiData = {};
+    if (rawText) {
+      try {
+        geminiData = JSON.parse(rawText);
+      } catch (_) {
+        geminiData = {};
+      }
+    }
 
     if (!geminiRes.ok) {
       return res.status(geminiRes.status).json({
-        error: geminiData?.error?.message || 'Permintaan ke Gemini API gagal'
+        error: geminiData?.error?.message || `Permintaan ke Gemini API gagal (HTTP ${geminiRes.status})`
       });
     }
 
