@@ -1,3 +1,6 @@
+const CONFIG = {
+  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook-test/booking-konselor"
+};
 document.addEventListener('alpine:init', () => {
   Alpine.data('appData', () => ({
     // States
