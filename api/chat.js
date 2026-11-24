@@ -1,4 +1,33 @@
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const MODEL_NAME = 'gemini-3.8-flash';
+const MAX_RETRIES = 2;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function normalizeContents(body) {
+  if (Array.isArray(body?.contents) && body.contents.length > 0) {
+    return body.contents;
+  }
+
+  if (Array.isArray(body?.messages)) {
+    return body.messages
+      .filter((item) => item && typeof item.text === 'string' && item.text.trim() !== '')
+      .map((item) => ({
+        role: item.role === 'user' ? 'user' : 'model',
+        parts: [{ text: item.text.trim() }]
+      }));
+  }
+
+  return [];
+}
+
+function extractReplyText(data) {
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return '';
+  return parts
+    .map((part) => (typeof part?.text === 'string' ? part.text : ''))
+    .join('')
+    .trim();
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -7,76 +36,63 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY belum diatur di server' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY belum diatur di Environment Variables Vercel.' });
   }
 
   try {
-    const { messages = [], contents: rawContents, systemInstruction = '' } = req.body || {};
-
-    const contents = Array.isArray(rawContents) && rawContents.length > 0
-      ? rawContents
-      : messages
-          .filter(msg => msg && typeof msg.text === 'string' && msg.text.trim() !== '')
-          .map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.text.trim() }]
-          }));
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const contents = normalizeContents(body);
 
     if (contents.length === 0) {
-      return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
+      return res.status(400).json({ error: 'Pesan chat tidak boleh kosong.' });
     }
 
-    const model = 'gemini-3.8-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const systemText = typeof body.systemInstruction === 'string' && body.systemInstruction.trim()
+      ? body.systemInstruction.trim()
+      : 'Kamu adalah CurhatBuddy, teman curhat yang empatik, suportif, ramah, dan tidak menghakimi.';
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const payload = {
       contents,
-      ...(typeof systemInstruction === 'string' && systemInstruction.trim()
-        ? { systemInstruction: { parts: [{ text: systemInstruction.trim() }] } }
-        : {})
+      systemInstruction: {
+        parts: [{ text: systemText }]
+      }
     };
 
-    const maxRetries = 2; // 1 request awal + 2 kali retry = maksimal 3 percobaan
-    let geminiRes = null;
-    let geminiData = {};
+    let lastStatus = 500;
+    let lastErrorText = 'Gagal menghubungi Gemini API.';
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      geminiRes = await fetch(url, {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
 
-      const rawText = await geminiRes.text();
-      geminiData = {};
-      if (rawText) {
-        try {
-          geminiData = JSON.parse(rawText);
-        } catch (_) {
-          geminiData = {};
-        }
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        const reply = extractReplyText(data) || 'Maaf, aku belum bisa menyusun balasan saat ini. Coba ulangi ya!';
+        return res.status(200).json({ reply });
       }
 
-      if (geminiRes.status !== 503 || attempt === maxRetries) {
+      lastStatus = response.status;
+      lastErrorText = data?.error?.message || `Gemini API error (${response.status})`;
+
+      const isTransient = response.status === 503 || response.status === 429 || response.status >= 500;
+      if (!isTransient || attempt === MAX_RETRIES) {
         break;
       }
 
-      await sleep(800 * (attempt + 1));
+      await sleep(700 * (attempt + 1));
     }
 
-    if (!geminiRes.ok) {
-      return res.status(geminiRes.status).json({
-        error: geminiData?.error?.message || `Permintaan ke Gemini API gagal (HTTP ${geminiRes.status})`
-      });
-    }
-
-    const reply =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      'Maaf, aku belum bisa merangkai balasan sekarang.';
-
-    return res.status(200).json({ reply });
+    return res.status(lastStatus).json({ error: lastErrorText });
   } catch (err) {
-    console.error('Server /api/chat error:', err);
-    return res.status(500).json({ error: 'Terjadi kesalahan pada server AI' });
+    console.error('Error di /api/chat:', err);
+    return res.status(500).json({ error: 'Terjadi kesalahan internal pada server chat.' });
   }
 }
