@@ -393,23 +393,42 @@
                       <div class="text-[11px] text-cyan-300" x-text="item.faculty || item.major || '-'"></div>
                     </td>
                     <td class="p-3 text-slate-300 font-mono text-xs" x-text="item.contact"></td>
-                    <td class="p-3 text-xs space-y-1.5">
-                      <div class="text-slate-200 font-semibold" x-text="item.location || (item.mode === 'Online' ? 'Online (Google Meet)' : 'Ruang Konseling')"></div>
-                      <template x-if="item.mode === 'Online'">
-                        <div class="space-y-1">
-                          <input type="text"
-                                 :value="item.meetingLink || ''"
-                                 @change="updateMeetingLink(item.bookingId || item.id, $event.target.value)"
-                                 placeholder="Tempel link Google Meet..."
-                                 class="w-48 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-[11px] text-cyan-200 focus:outline-none focus:border-cyan-400">
-                          <div x-show="item.meetingLink">
-                            <a :href="item.meetingLink" target="_blank" rel="noopener noreferrer" class="text-[11px] text-cyan-300 underline break-all" x-text="item.meetingLink"></a>
-                          </div>
-                          <div x-show="!item.meetingLink" class="text-[11px] text-amber-300 italic">
-                            Menunggu link konselor
-                          </div>
+                    <td class="p-3 text-xs space-y-2 min-w-[220px]">
+                      <select :value="item.mode || 'Offline'"
+                              @change="updateBookingMode(item.bookingId || item.id, $event.target.value)"
+                              class="w-full bg-slate-800 border-2 border-black rounded-lg px-2 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-pink-400">
+                        <option value="Offline">Offline (Tatap Muka)</option>
+                        <option value="Online">Online (Google Meet)</option>
+                      </select>
+
+                      <div x-show="(item.mode || 'Offline') !== 'Online'" class="text-slate-300 font-medium"
+                           x-text="item.location || 'Ruang Konseling'"></div>
+
+                      <div x-show="(item.mode || 'Offline') === 'Online'" class="space-y-1.5">
+                        <div class="text-[11px] text-cyan-300 font-semibold">Google Meet</div>
+                        <input type="url"
+                               :value="item.meetingLink || ''"
+                               @change="updateMeetingLink(item.bookingId || item.id, $event.target.value, false)"
+                               placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                               class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-cyan-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400">
+                        <div class="flex items-center justify-between gap-2">
+                          <a x-show="item.meetingLink"
+                             :href="item.meetingLink"
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             class="text-[11px] text-emerald-300 underline truncate">
+                            Buka Link Meet
+                          </a>
+                          <span x-show="!item.meetingLink" class="text-[11px] text-amber-300 italic">
+                            Belum ada link
+                          </span>
+                          <button type="button"
+                                  @click="updateMeetingLink(item.bookingId || item.id, $el.closest('div.space-y-1\\.5').querySelector('input').value, true)"
+                                  class="px-2 py-0.5 bg-cyan-300 hover:bg-cyan-400 text-black font-bold rounded border border-black text-[11px]">
+                            Simpan & Kirim
+                          </button>
                         </div>
-                      </template>
+                      </div>
                     </td>
                     <td class="p-3 text-slate-300 text-xs whitespace-nowrap" x-text="item.schedule || `${item.date} (${item.time})`"></td>
                     <td class="p-3 text-slate-400 text-xs max-w-xs truncate" x-text="item.topic"></td>
