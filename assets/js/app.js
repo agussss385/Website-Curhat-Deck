@@ -135,7 +135,7 @@ document.addEventListener('alpine:init', () => {
         ? CONFIG.BOOKING_WEBHOOK_URL.trim()
         : '';
 
-      if (!webhookUrl || webhookUrl.includes('http://localhost:5678/webhook/booking-konselor')) {
+      if (!webhookUrl || webhookUrl.includes('http://localhost:5678/webhook-test/booking-konselor')) {
         this.isSubmittingBooking = false;
         this.showToast("Booking tersimpan lokal (URL webhook n8n belum diatur).", "error");
         return;
