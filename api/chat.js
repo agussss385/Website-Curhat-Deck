@@ -1,3 +1,5 @@
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -34,20 +36,32 @@ export default async function handler(req, res) {
         : {})
     };
 
-    const geminiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const rawText = await geminiRes.text();
+    const maxRetries = 2; // 1 request awal + 2 kali retry = maksimal 3 percobaan
+    let geminiRes = null;
     let geminiData = {};
-    if (rawText) {
-      try {
-        geminiData = JSON.parse(rawText);
-      } catch (_) {
-        geminiData = {};
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      geminiRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const rawText = await geminiRes.text();
+      geminiData = {};
+      if (rawText) {
+        try {
+          geminiData = JSON.parse(rawText);
+        } catch (_) {
+          geminiData = {};
+        }
       }
+
+      if (geminiRes.status !== 503 || attempt === maxRetries) {
+        break;
+      }
+
+      await sleep(800 * (attempt + 1));
     }
 
     if (!geminiRes.ok) {
