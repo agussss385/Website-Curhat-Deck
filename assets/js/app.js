@@ -251,7 +251,7 @@ function appData() {
 
     getWebhookEndpoint() {
       // Isi URL Production Webhook n8n di bawah ini agar tetap terkirim meskipun CONFIG belum terbaca
-      const FALLBACK_WEBHOOK_URL = "";
+      const FALLBACK_WEBHOOK_URL = "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
 
       const cfg =
         typeof window !== "undefined" && window.CONFIG
