@@ -6,8 +6,9 @@ document.addEventListener('alpine:init', () => {
     counselorStatus: LocalStore.get('curhat_counselor_status', 'Online'),
     userInput: '',
     isAiThinking: false,
+    isSubmittingBooking: false,
     showSosModal: false,
-    
+
     toast: {
       show: false,
       message: '',
@@ -34,7 +35,7 @@ document.addEventListener('alpine:init', () => {
       this.$watch('chatMessages', val => LocalStore.set('curhat_chat_history', val));
       this.$watch('bookings', val => LocalStore.set('curhat_bookings', val));
       this.$watch('counselorStatus', val => LocalStore.set('curhat_counselor_status', val));
-      
+
       this.$nextTick(() => {
         if (window.lucide) lucide.createIcons();
       });
@@ -80,9 +81,9 @@ document.addEventListener('alpine:init', () => {
         const aiReply = await fetchGeminiResponse(this.chatMessages);
         this.chatMessages.push({ role: 'model', text: aiReply });
       } catch (error) {
-        this.chatMessages.push({ 
-          role: 'model', 
-          text: 'Duh, koneksi aku lagi sedikit masalah nih 🥺 Coba kirim ulang pesanmu ya!' 
+        this.chatMessages.push({
+          role: 'model',
+          text: 'Duh, koneksi aku lagi sedikit masalah nih 🥺 Coba kirim ulang pesanmu ya!'
         });
       } finally {
         this.isAiThinking = false;
@@ -111,16 +112,55 @@ document.addEventListener('alpine:init', () => {
       });
     },
 
-    submitBooking() {
+    async submitBooking() {
+      if (this.isSubmittingBooking) return;
+      this.isSubmittingBooking = true;
+
       const newBooking = {
         id: Date.now(),
-        ...this.bookingForm,
-        status: 'Pending'
+        name: this.bookingForm.name.trim(),
+        contact: this.bookingForm.contact.trim(),
+        date: this.bookingForm.date,
+        time: this.bookingForm.time.trim(),
+        topic: this.bookingForm.topic.trim(),
+        status: 'Pending',
+        source: 'curhatdeck',
+        submittedAt: new Date().toISOString()
       };
-      
+
       this.bookings.unshift(newBooking);
       this.bookingForm = { name: '', contact: '', date: '', time: '', topic: '' };
-      this.showToast("Permintaan booking berhasil dikirim!");
+
+      const webhookUrl = (typeof CONFIG !== 'undefined' && CONFIG.BOOKING_WEBHOOK_URL)
+        ? CONFIG.BOOKING_WEBHOOK_URL.trim()
+        : '';
+
+      if (!webhookUrl || webhookUrl.includes('http://localhost:5678/webhook/booking-konselor')) {
+        this.isSubmittingBooking = false;
+        this.showToast("Booking tersimpan lokal (URL webhook n8n belum diatur).", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(newBooking)
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        this.showToast("Permintaan booking terkirim & notifikasi email diproses!");
+      } catch (err) {
+        console.error("Webhook booking error:", err);
+        this.showToast("Booking tersimpan, tapi gagal mengirim notif ke n8n.", "error");
+      } finally {
+        this.isSubmittingBooking = false;
+      }
     },
 
     updateBookingStatus(id, newStatus) {
