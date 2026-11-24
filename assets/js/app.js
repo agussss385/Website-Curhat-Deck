@@ -1,3 +1,69 @@
+// Helper AI Chat yang aman (melewati endpoint/webhook n8n tanpa mengekspos API key di frontend)
+async function fetchGeminiResponse(chatMessages = []) {
+  const cfg =
+    typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
+      ? window.CONFIG
+      : {};
+
+  const chatEndpoint = String(
+    cfg.AI_CHAT_ENDPOINT ||
+      cfg.N8N_WEBHOOK_URL ||
+      cfg.BOOKING_ENDPOINT ||
+      ""
+  ).trim();
+
+  if (!chatEndpoint || !/^https?:\/\//i.test(chatEndpoint)) {
+    throw new Error("Endpoint AI belum dikonfigurasi di config.js.");
+  }
+
+  const systemInstruction = String(cfg.SYSTEM_INSTRUCTION || "").trim();
+  const cleanMessages = (Array.isArray(chatMessages) ? chatMessages : [])
+    .filter((m) => m && typeof m.text === "string" && m.text.trim() !== "")
+    .map((m) => ({
+      role: m.role === "user" ? "user" : "model",
+      text: m.text.trim()
+    }));
+
+  const response = await fetch(chatEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      action: "ai_chat",
+      source: "curhatdeck",
+      systemInstruction,
+      messages: cleanMessages,
+      lastMessage: cleanMessages[cleanMessages.length - 1]?.text || ""
+    })
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.ok === false) {
+    throw new Error(
+      data?.error?.message || data?.error || `Gagal terhubung ke AI (HTTP ${response.status})`
+    );
+  }
+
+  const replyText =
+    data?.reply ||
+    data?.text ||
+    data?.output ||
+    data?.message ||
+    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    "";
+
+  const trimmedReply = String(replyText).trim();
+  if (!trimmedReply) {
+    return "Aku di sini dengerin kamu kok 🫂 Coba ceritain lagi pelan-pelan ya, apa yang lagi bikin kamu kepikiran?";
+  }
+
+  return trimmedReply;
+}
+
+window.fetchGeminiResponse = fetchGeminiResponse;
+
 function appData() {
   const initialWelcome = {
     role: "model",
@@ -92,7 +158,11 @@ function appData() {
     refreshIcons() {
       this.$nextTick(() => {
         if (window.lucide && typeof window.lucide.createIcons === "function") {
-          window.lucide.createIcons();
+          try {
+            window.lucide.createIcons();
+          } catch (e) {
+            // Abaikan error ikon agar tidak mengganggu alur utama
+          }
         }
       });
     },
@@ -226,10 +296,6 @@ function appData() {
       this.scrollChatToBottom();
 
       try {
-        if (typeof fetchGeminiResponse !== "function") {
-          throw new Error("Klien AI belum termuat.");
-        }
-
         const replyText = await fetchGeminiResponse(this.chatMessages);
 
         this.chatMessages.push({
@@ -250,8 +316,8 @@ function appData() {
     },
 
     getWebhookEndpoint() {
-      // Ganti dengan URL Production Webhook n8n kamu yang asli
-      const FALLBACK_WEBHOOK_URL = "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
+      const FALLBACK_WEBHOOK_URL =
+        "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
 
       const cfg =
         typeof window !== "undefined" && window.CONFIG
