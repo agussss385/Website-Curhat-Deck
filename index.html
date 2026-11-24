@@ -3,209 +3,314 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CurhatDeck — Booking & Dashboard Konselor</title>
+  <title>CurhatDeck — Ruang Konseling Mahasiswa</title>
   <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --success: #059669;
+      --success-hover: #047857;
+      --border: #e2e8f0;
+      --pending-bg: #fef3c7;
+      --pending-text: #92400e;
+      --approved-bg: #dcfce7;
+      --approved-text: #166534;
+    }
+
     * {
       box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
       margin: 0;
-      padding: 24px;
-      background-color: #f4f6f9;
-      color: #1f2937;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 220px);
+      color: var(--text);
+      padding: 28px 16px 48px;
     }
 
-    .container {
-      max-width: 960px;
+    .app-shell {
+      max-width: 980px;
       margin: 0 auto;
     }
 
-    header {
+    .topbar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-      background: #ffffff;
-      padding: 16px 20px;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 22px;
+      box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+      margin-bottom: 22px;
     }
 
-    header h1 {
+    .brand-title {
       margin: 0;
-      font-size: 1.4rem;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
-    .role-switch {
-      display: flex;
-      gap: 8px;
+    .brand-subtitle {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
     }
 
-    .role-btn {
-      padding: 8px 14px;
-      border: 1px solid #d1d5db;
-      background: #ffffff;
-      color: #374151;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .role-btn.active {
-      background: #2563eb;
-      color: #ffffff;
-      border-color: #2563eb;
-    }
-
-    .card {
-      background: #ffffff;
-      padding: 20px;
+    .nav-tabs {
+      display: inline-flex;
+      background: var(--surface-soft);
+      padding: 4px;
       border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+      gap: 4px;
+    }
+
+    .nav-tab {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 9px 16px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .nav-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
       margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .card h2 {
-      margin-top: 0;
-      font-size: 1.15rem;
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
     }
 
-    .form-grid {
+    .panel-header p {
+      margin: 4px 0 0;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
     }
 
-    .form-group {
+    .field {
       display: flex;
       flex-direction: column;
       gap: 6px;
+      margin-bottom: 14px;
     }
 
-    label {
-      font-size: 0.9rem;
+    .field label {
+      font-size: 0.88rem;
       font-weight: 600;
+      color: var(--text);
     }
 
-    input,
-    select,
-    textarea {
-      padding: 9px 12px;
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 10px 13px;
       border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      border-radius: 10px;
+      font-size: 0.94rem;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .btn-primary {
-      margin-top: 14px;
-      padding: 10px 18px;
-      background: #2563eb;
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+    }
+
+    .btn-submit {
+      background: var(--primary);
       color: #ffffff;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-size: 0.94rem;
       font-weight: 600;
       cursor: pointer;
+      transition: background 0.15s ease;
     }
 
-    .btn-primary:hover {
-      background: #1d4ed8;
+    .btn-submit:hover {
+      background: var(--primary-hover);
     }
 
-    .booking-list {
+    .booking-stack {
       display: grid;
       gap: 14px;
     }
 
-    .booking-item {
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      padding: 16px;
-      background: #fafafa;
+    .booking-card {
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      border-radius: 14px;
+      padding: 18px;
     }
 
-    .booking-header {
+    .booking-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-bottom: 10px;
     }
 
-    .badge {
-      padding: 4px 10px;
+    .booking-id {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .status-pill {
+      padding: 4px 12px;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
     }
 
-    .badge-pending {
-      background: #fef3c7;
-      color: #92400e;
+    .status-pending {
+      background: var(--pending-bg);
+      color: var(--pending-text);
     }
 
-    .badge-approved {
-      background: #dcfce7;
-      color: #166534;
+    .status-approved {
+      background: var(--approved-bg);
+      color: var(--approved-text);
     }
 
-    .counselor-controls {
+    .booking-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 6px 14px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .booking-topic {
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .meet-bar {
       margin-top: 12px;
       padding-top: 12px;
-      border-top: 1px dashed #d1d5db;
+      border-top: 1px dashed #cbd5e1;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
     }
 
-    .counselor-controls input,
-    .counselor-controls select {
+    .meet-bar select {
+      min-width: 130px;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: var(--surface);
+      font-size: 0.9rem;
+    }
+
+    .meet-bar input {
       flex: 1;
-      min-width: 220px;
+      min-width: 230px;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: var(--surface);
+      font-size: 0.9rem;
     }
 
     .btn-save-send {
-      padding: 9px 16px;
-      background: #059669;
+      background: var(--success);
       color: #ffffff;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
+      transition: background 0.15s ease;
     }
 
     .btn-save-send:hover {
-      background: #047857;
+      background: var(--success-hover);
     }
 
     .btn-save-send:disabled {
-      background: #9ca3af;
+      background: #94a3b8;
       cursor: not-allowed;
     }
 
-    .toast {
-      margin-top: 12px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.9rem;
+    .alert {
+      margin-top: 14px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
       display: none;
     }
 
-    .toast.success {
+    .alert.show-success {
       display: block;
-      background: #dcfce7;
-      color: #166534;
+      background: var(--approved-bg);
+      color: var(--approved-text);
     }
 
-    .toast.error {
+    .alert.show-error {
       display: block;
       background: #fee2e2;
       color: #991b1b;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 28px 12px;
+      font-size: 0.92rem;
     }
 
     .hidden {
@@ -214,66 +319,84 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>CurhatDeck — Layanan Konseling</h1>
-      <div class="role-switch">
-        <button type="button" id="btn-view-student" class="role-btn active">Mode Mahasiswa</button>
-        <button type="button" id="btn-view-counselor" class="role-btn">Mode Konselor</button>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1 class="brand-title">CurhatDeck</h1>
+        <p class="brand-subtitle">Layanan Booking & Konfirmasi Sesi Konseling</p>
       </div>
+      <nav class="nav-tabs" aria-label="Pilihan Peran">
+        <button type="button" id="tab-student" class="nav-tab active">Mahasiswa</button>
+        <button type="button" id="tab-counselor" class="nav-tab">Konselor</button>
+      </nav>
     </header>
 
-    <!-- Bagian Mahasiswa -->
-    <section id="student-section" class="card">
-      <h2>Ajukan Jadwal Konseling</h2>
-      <form id="booking-form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="student-name">Nama Mahasiswa</label>
-            <input type="text" id="student-name" required placeholder="Contoh: Dylan Putra" />
+    <!-- Panel Mahasiswa -->
+    <main id="panel-student" class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Formulir Booking Konseling</h2>
+          <p>Isi data jadwal agar permintaan sesi tercatat dan notifikasi awal terkirim.</p>
+        </div>
+      </div>
+
+      <form id="student-booking-form">
+        <div class="grid-2">
+          <div class="field">
+            <label for="input-name">Nama Lengkap</label>
+            <input type="text" id="input-name" required placeholder="Contoh: Dylan Putra" />
           </div>
-          <div class="form-group">
-            <label for="student-email">Email Mahasiswa</label>
-            <input type="email" id="student-email" required placeholder="nama@email.com" />
+          <div class="field">
+            <label for="input-email">Email Aktif</label>
+            <input type="email" id="input-email" required placeholder="nama@email.com" />
           </div>
-          <div class="form-group">
-            <label for="student-faculty">Jurusan / Prodi</label>
-            <input type="text" id="student-faculty" required placeholder="Contoh: Teknik Informatika" />
+          <div class="field">
+            <label for="input-faculty">Jurusan / Prodi</label>
+            <input type="text" id="input-faculty" required placeholder="Contoh: Desain / TI" />
           </div>
-          <div class="form-group">
-            <label for="session-mode">Mode Sesi</label>
-            <select id="session-mode">
+          <div class="field">
+            <label for="input-mode">Mode Sesi</label>
+            <select id="input-mode">
               <option value="Online">Online</option>
               <option value="Offline">Offline</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="session-date">Tanggal</label>
-            <input type="date" id="session-date" required />
+          <div class="field">
+            <label for="input-date">Tanggal</label>
+            <input type="date" id="input-date" required />
           </div>
-          <div class="form-group">
-            <label for="session-time">Jam (WIB)</label>
-            <input type="time" id="session-time" required />
+          <div class="field">
+            <label for="input-time">Jam (WIB)</label>
+            <input type="time" id="input-time" required />
           </div>
-          <div class="form-group" id="location-group">
-            <label for="session-location">Lokasi / Ruang</label>
-            <input type="text" id="session-location" value="Online (Google Meet)" />
+          <div class="field">
+            <label for="input-location">Tempat / Ruang Konseling</label>
+            <input type="text" id="input-location" value="Online (Google Meet)" />
           </div>
         </div>
-        <div class="form-group" style="margin-top: 12px;">
-          <label for="session-topic">Topik Konseling</label>
-          <textarea id="session-topic" rows="3" required placeholder="Ceritakan singkat topik yang ingin dibahas..."></textarea>
-        </div>
-        <button type="submit" class="btn-primary">Kirim Booking</button>
-      </form>
-      <div id="student-toast" class="toast"></div>
-    </section>
 
-    <!-- Bagian Konselor -->
-    <section id="counselor-section" class="card hidden">
-      <h2>Dashboard Konselor — Antrean Booking</h2>
-      <div id="counselor-toast" class="toast"></div>
-      <div id="counselor-booking-list" class="booking-list"></div>
+        <div class="field">
+          <label for="input-topic">Topik Konseling</label>
+          <textarea id="input-topic" rows="3" required placeholder="Tuliskan topik atau hal yang ingin didiskusikan..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">Kirim Permintaan</button>
+      </form>
+
+      <div id="student-alert" class="alert"></div>
+    </main>
+
+    <!-- Panel Konselor -->
+    <section id="panel-counselor" class="panel hidden">
+      <div class="panel-header">
+        <div>
+          <h2>Dashboard Konselor</h2>
+          <p>Tempel link Google Meet pada sesi Online, lalu klik Simpan & Kirim untuk menyetujui dan mengirim ke Gmail.</p>
+        </div>
+      </div>
+
+      <div id="counselor-alert" class="alert"></div>
+      <div id="counselor-list" class="booking-stack"></div>
     </section>
   </div>
 
