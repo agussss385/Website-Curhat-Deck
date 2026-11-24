@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CurhatDeck - Venting Zone Ala Gen-Z</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫂</text></svg>">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +17,6 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Custom Style (sesuaikan path jika styles.css berada di folder lain) -->
-  <link rel="stylesheet" href="./assets/css/styles.css">
-
   <!-- Style Maskot CurhatBuddy -->
   <style>
     @keyframes buddyFloat {
@@ -30,9 +28,8 @@
     }
   </style>
 
-  <!-- Konfigurasi & Script Aplikasi (sesuaikan path jika berada di folder lain) -->
+  <!-- Konfigurasi & Script Aplikasi -->
   <script src="./assets/js/config.js"></script>
-  <script src="./assets/js/api.js"></script>
   <script src="./assets/js/app.js"></script>
 
   <!-- Alpine.js (Defer) -->
@@ -173,7 +170,7 @@
           </button>
         </div>
 
-        <!-- TAB 1: Gemini AI Chat (Terkunci sebelum login) -->
+        <!-- TAB 1: Gemini AI Chat -->
         <div x-show="activeTab === 'ai-chat'" class="relative bg-slate-900 border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000] flex flex-col h-[600px] overflow-hidden">
           <div class="flex-1 flex flex-col overflow-hidden transition-all" :class="!studentUser ? 'blur-[2px] opacity-40 pointer-events-none select-none' : ''">
             <div class="bg-slate-800 p-4 border-b-2 border-black flex items-center justify-between">
@@ -249,7 +246,7 @@
           </div>
         </div>
 
-        <!-- TAB 2: Booking Form (Terkunci sebelum login) -->
+        <!-- TAB 2: Booking Form -->
         <div x-show="activeTab === 'booking'" class="relative bg-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 shadow-[6px_6px_0px_0px_#000] overflow-hidden">
           <div class="max-w-xl mx-auto space-y-6 transition-all" :class="!studentUser ? 'blur-[2px] opacity-40 pointer-events-none select-none' : ''">
             <div>
@@ -349,14 +346,12 @@
     <!-- MODE KONSELOR (DASHBOARD ADMIN) -->
     <template x-if="currentRole === 'counselor'">
       <div class="space-y-6">
-        <!-- Counselor Header & Controls -->
         <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4">
           <div>
             <span class="bg-pink-500 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black uppercase">Dashboard Konselor</span>
             <h2 class="text-2xl font-black font-space mt-1">Panel Manajemen Sesi & Konseling</h2>
           </div>
 
-          <!-- Status Toggle -->
           <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-2xl border-2 border-black">
             <span class="text-xs font-bold text-slate-300 pl-2">Status Kamu:</span>
             <button type="button" @click="setCounselorStatus('Online')" :class="counselorStatus === 'Online' ? 'bg-emerald-400 text-black font-bold' : 'text-slate-400'" class="px-3 py-1 rounded-xl text-xs transition-all">Online</button>
@@ -365,7 +360,6 @@
           </div>
         </div>
 
-        <!-- Bookings List Table -->
         <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000]">
           <h3 class="text-lg font-bold font-space text-pink-400 mb-4 flex items-center gap-2">
             <i data-lucide="inbox" class="w-5 h-5"></i> Antrean Permintaan Sesi 1-on-1
@@ -444,23 +438,28 @@
                     <td class="p-3 text-slate-300 text-xs whitespace-nowrap" x-text="item.schedule || `${item.date} (${item.time})`"></td>
                     <td class="p-3 text-slate-400 text-xs max-w-xs truncate" x-text="item.topic"></td>
                     <td class="p-3">
-                      <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border border-black"
-                            :class="{
-                              'bg-yellow-300 text-black': item.status === 'Pending',
-                              'bg-emerald-400 text-black': item.status === 'Disetujui',
-                              'bg-slate-600 text-white': item.status === 'Selesai'
-                            }"
-                            x-text="item.status"></span>
+                      <select :value="item.status || 'Pending'"
+                              @change="updateBookingStatus(item.bookingId || item.id, $event.target.value)"
+                              class="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-xs font-bold text-yellow-300 focus:outline-none">
+                        <option value="Pending">Pending</option>
+                        <option value="Disetujui">Disetujui</option>
+                        <option value="Selesai">Selesai</option>
+                        <option value="Dibatalkan">Dibatalkan</option>
+                      </select>
                     </td>
-                    <td class="p-3 text-right space-x-1 whitespace-nowrap">
-                      <button type="button" x-show="item.status === 'Pending'" @click="updateBookingStatus(item.bookingId || item.id, 'Disetujui')" class="px-2.5 py-1 bg-emerald-400 text-black text-xs font-bold rounded-lg border border-black">Approve</button>
-                      <button type="button" x-show="item.status === 'Disetujui'" @click="updateBookingStatus(item.bookingId || item.id, 'Selesai')" class="px-2.5 py-1 bg-cyan-300 text-black text-xs font-bold rounded-lg border border-black">Selesai</button>
-                      <button type="button" @click="deleteBooking(item.bookingId || item.id)" class="px-2.5 py-1 bg-red-400 text-black text-xs font-bold rounded-lg border border-black">Hapus</button>
+                    <td class="p-3 text-right">
+                      <button type="button"
+                              @click="deleteBooking(item.bookingId || item.id)"
+                              class="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 rounded-lg text-xs font-bold transition-all">
+                        Hapus
+                      </button>
                     </td>
                   </tr>
                 </template>
                 <tr x-show="bookings.length === 0">
-                  <td colspan="8" class="p-6 text-center text-slate-500 italic">Belum ada antrean booking curhat.</td>
+                  <td colspan="8" class="p-6 text-center text-slate-400 text-sm">
+                    Belum ada antrean booking konseling masuk.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -470,103 +469,79 @@
     </template>
   </main>
 
-  <!-- Modal Login & Register Mahasiswa -->
-  <div x-show="authModal.isOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-    <div @click.outside="closeAuthModal()" class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ec4899] space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-xl font-black font-space text-pink-400" x-text="authModal.mode === 'login' ? 'Login Mahasiswa' : 'Register Mahasiswa'"></h3>
-        <button type="button" @click="closeAuthModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
-      </div>
+  <!-- Modal Login / Register Mahasiswa -->
+  <div x-show="authModal.isOpen"
+       class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+       style="display: none;">
+    <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 max-w-md w-full shadow-[6px_6px_0px_0px_#000] space-y-5 relative">
+      <button type="button" @click="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
 
-      <!-- Switch Login / Register -->
-      <div class="grid grid-cols-2 gap-2 bg-slate-800 p-1.5 rounded-2xl border-2 border-black text-xs font-extrabold">
+      <div class="flex gap-2 bg-slate-800 p-1 rounded-xl border-2 border-black">
         <button type="button" @click="authModal.mode = 'login'"
-                :class="authModal.mode === 'login' ? 'bg-cyan-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]' : 'text-slate-300 hover:text-white'"
-                class="py-2 rounded-xl transition-all">
-          Login
-        </button>
+                :class="authModal.mode === 'login' ? 'bg-cyan-300 text-black font-black' : 'text-slate-300 font-semibold'"
+                class="flex-1 py-2 rounded-lg text-xs transition-all">Masuk</button>
         <button type="button" @click="authModal.mode = 'register'"
-                :class="authModal.mode === 'register' ? 'bg-yellow-300 text-black border-2 border-black shadow-[2px_2px_0px_0px_#000]' : 'text-slate-300 hover:text-white'"
-                class="py-2 rounded-xl transition-all">
-          Register
-        </button>
+                :class="authModal.mode === 'register' ? 'bg-pink-500 text-black font-black' : 'text-slate-300 font-semibold'"
+                class="flex-1 py-2 rounded-lg text-xs transition-all">Daftar Akun</button>
       </div>
 
-      <!-- Form Login (Nama & Password) -->
-      <form x-show="authModal.mode === 'login'" @submit.prevent="loginStudent()" class="space-y-3">
+      <form x-show="authModal.mode === 'login'" @submit.prevent="loginStudent()" class="space-y-4">
+        <h3 class="text-xl font-black font-space text-cyan-300">Masuk Akun Mahasiswa</h3>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama</label>
-          <input type="text" x-model="authModal.loginForm.name" required placeholder="Masukkan nama kamu..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Nama / Panggilan</label>
+          <input type="text" x-model="authModal.loginForm.name" required placeholder="Contoh: Dylan Putra" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password</label>
-          <input type="password" x-model="authModal.loginForm.password" required placeholder="Masukkan password..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Password</label>
+          <input type="password" x-model="authModal.loginForm.password" placeholder="••••••••" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
-        <button type="submit" class="w-full py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-sm">
-          Masuk ke CurhatDeck 🚀
+        <button type="submit" class="w-full py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000]">
+          Masuk Sekarang
         </button>
-        <p class="text-xs text-slate-400 text-center">
-          Belum punya akun?
-          <button type="button" @click="authModal.mode = 'register'" class="text-yellow-300 font-bold underline">Daftar di sini</button>
-        </p>
       </form>
 
-      <!-- Form Register (Nama dll -> Kembali ke Login) -->
-      <form x-show="authModal.mode === 'register'" @submit.prevent="registerStudent()" class="space-y-3">
+      <form x-show="authModal.mode === 'register'" @submit.prevent="registerStudent()" class="space-y-4">
+        <h3 class="text-xl font-black font-space text-pink-400">Daftar Akun Mahasiswa</h3>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama *</label>
-          <input type="text" x-model="authModal.registerForm.name" required placeholder="Contoh: Raka Pratama" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Nama Lengkap</label>
+          <input type="text" x-model="authModal.registerForm.name" required placeholder="Nama kamu" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Email / Kontak</label>
-          <input type="text" x-model="authModal.registerForm.email" placeholder="nama@polimedia.ac.id atau 0812xxxx" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Email Kampus</label>
+          <input type="email" x-model="authModal.registerForm.email" placeholder="nama@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Jurusan / Prodi</label>
-          <input type="text" x-model="authModal.registerForm.faculty" placeholder="Contoh: Desain Grafis / Multimedia / Teknologi Rekayasa Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
+          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Jurusan / Prodi</label>
+          <input type="text" x-model="authModal.registerForm.faculty" placeholder="Contoh: Teknologi Rekayasa Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password *</label>
-          <input type="password" x-model="authModal.registerForm.password" required placeholder="Buat password..." class="w-full bg-slate-800 border-2 border-black rounded-xl p-2.5 text-sm focus:border-pink-400 text-white">
-        </div>
-        <button type="submit" class="w-full py-3 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all text-sm">
-          Daftar & Kembali ke Login ✅
+        <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000]">
+          Buat Akun
         </button>
       </form>
     </div>
   </div>
 
-  <!-- SOS Emergency Modal -->
-  <div x-show="showSosModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-    <div @click.outside="showSosModal = false" class="bg-slate-900 border-4 border-black rounded-3xl max-w-md w-full p-6 shadow-[8px_8px_0px_0px_#ef4444] space-y-4">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-red-400">
-          <i data-lucide="siren" class="w-5 h-5"></i>
-          <h3 class="text-xl font-black font-space">Bantuan Darurat / SOS</h3>
-        </div>
-        <button type="button" @click="showSosModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
+  <!-- Modal Darurat SOS -->
+  <div x-show="showSosModal"
+       class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+       style="display: none;">
+    <div class="bg-slate-900 border-4 border-red-500 rounded-3xl p-6 max-w-md w-full shadow-[6px_6px_0px_0px_#ef4444] space-y-4 relative">
+      <button type="button" @click="showSosModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
+      <div class="flex items-center gap-2 text-red-400 font-black font-space text-xl">
+        <i data-lucide="siren" class="w-6 h-6"></i>
+        <span>Bantuan Darurat / SOS</span>
       </div>
-
-      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-        Kalau kamu sedang merasa sangat tertekan, tidak aman, atau butuh dukungan segera, jangan hadapi sendirian. Hubungi layanan bantuan atau konselor terdekat.
+      <p class="text-sm text-slate-300 leading-relaxed">
+        Kalau kamu sedang merasa sangat tertekan, kewalahan, atau butuh bantuan segera, jangan hadapi sendirian ya.
       </p>
-
-      <div class="space-y-2.5 text-xs">
-        <div class="bg-slate-800 border-2 border-black rounded-2xl p-3">
-          <p class="font-bold text-yellow-300">Layanan Konseling Kampus & Peer Support</p>
-          <p class="text-slate-300 mt-0.5">Ajukan jadwal prioritas lewat menu <strong class="text-white">Booking Sesi 1-on-1</strong> atau hubungi bagian kemahasiswaan.</p>
-        </div>
-        <div class="bg-slate-800 border-2 border-black rounded-2xl p-3">
-          <p class="font-bold text-cyan-300">Layanan Darurat Nasional</p>
-          <p class="text-slate-300 mt-0.5">Hubungi <strong class="text-white">119</strong> atau layanan darurat setempat bila berada dalam situasi krisis.</p>
-        </div>
+      <div class="space-y-2 text-sm bg-slate-800 p-4 rounded-2xl border-2 border-black">
+        <div><strong class="text-yellow-300">Layanan Darurat Nasional:</strong> 119</div>
+        <div><strong class="text-cyan-300">Konseling Kampus / Konselor:</strong> Hubungi konselor melalui tab Booking Sesi 1-on-1.</div>
       </div>
-
-      <button type="button" @click="showSosModal = false" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000] text-sm">
+      <button type="button" @click="showSosModal = false" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl border-2 border-black">
         Tutup
       </button>
     </div>
   </div>
-
 </body>
 </html>
