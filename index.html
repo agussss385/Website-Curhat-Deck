@@ -418,8 +418,8 @@
                       <div x-show="(item.mode || 'Offline') === 'Online'" class="space-y-1.5">
                         <div class="text-[11px] text-cyan-300 font-semibold">Google Meet</div>
                         <input type="url"
-                               :value="item.meetingLink || ''"
-                               @change="updateMeetingLink(item.bookingId || item.id, $event.target.value, false)"
+                               x-model="item.meetingLink"
+                               @change="updateMeetingLink(item.bookingId || item.id, item.meetingLink, false)"
                                placeholder="https://meet.google.com/xxx-xxxx-xxx"
                                class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-cyan-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400">
                         <div class="flex items-center justify-between gap-2">
@@ -434,7 +434,7 @@
                             Belum ada link
                           </span>
                           <button type="button"
-                                  @click="updateMeetingLink(item.bookingId || item.id, $el.closest('div.space-y-1\\.5').querySelector('input').value, true)"
+                                  @click="updateMeetingLink(item.bookingId || item.id, item.meetingLink, true)"
                                   class="px-2 py-0.5 bg-cyan-300 hover:bg-cyan-400 text-black font-bold rounded border border-black text-[11px]">
                             Simpan & Kirim
                           </button>
