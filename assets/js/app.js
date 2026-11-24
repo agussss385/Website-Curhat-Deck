@@ -1,5 +1,5 @@
 // Ganti dengan URL Production Webhook n8n milikmu
-const N8N_WEBHOOK_URL = "https://GANTI_DENGAN_WEBHOOK_N8N_KAMU";
+const N8N_WEBHOOK_URL = "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
 const STORAGE_KEY = "curhatdeck_counseling_items_v1";
 
 let items = readItems();
@@ -250,7 +250,7 @@ counselorList.addEventListener("click", async (event) => {
 });
 
 async function postToWebhook(payload) {
-  if (!N8N_WEBHOOK_URL || N8N_WEBHOOK_URL.includes("GANTI_DENGAN_WEBHOOK_N8N_KAMU")) {
+  if (!N8N_WEBHOOK_URL || N8N_WEBHOOK_URL.includes("https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router")) {
     throw new Error("N8N_WEBHOOK_URL di app.js belum diganti.");
   }
 
