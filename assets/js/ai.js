@@ -1,7 +1,11 @@
 // Gemini AI API Client (aman: tanpa API key di frontend)
 async function fetchGeminiResponse(chatHistory) {
+  const timeoutMs = (typeof CONFIG !== 'undefined' && typeof CONFIG.REQUEST_TIMEOUT_MS === 'number')
+    ? CONFIG.REQUEST_TIMEOUT_MS
+    : 25000;
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000); // Timeout 25 detik
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs); // Timeout default 25 detik
 
   try {
     const rawEndpoint = (typeof CONFIG !== 'undefined' && typeof CONFIG.AI_CHAT_ENDPOINT === 'string')
