@@ -3,6 +3,8 @@ window.CONFIG = {
   BOOKING_ENDPOINT: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router",
   BOOKING_WEBHOOK_URL: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router",
   N8N_WEBHOOK_URL: "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router",
+  // Opsional: jika punya endpoint khusus chat AI, isi di sini; jika kosong akan memakai N8N_WEBHOOK_URL
+  AI_CHAT_ENDPOINT: "",
 
   // System Instruction khusus Gemini AI agar bergaya Peer Counselor Gen-Z untuk mahasiswa Polimedia
   SYSTEM_INSTRUCTION: `Kamu adalah CurhatBuddy, AI Peer Counselor untuk mahasiswa Gen-Z di Polimedia (Politeknik Negeri Media Kreatif) pada platform CurhatDeck.
