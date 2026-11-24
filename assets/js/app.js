@@ -79,6 +79,7 @@ function appData() {
           } else {
             LocalStore.remove(LocalStore.KEYS.STUDENT_USER);
           }
+          this.refreshIcons();
         });
         this.$watch("counselorStatus", (val) => {
           LocalStore.set(LocalStore.KEYS.COUNSELOR_STATUS, val);
@@ -87,6 +88,15 @@ function appData() {
 
       this.refreshIcons();
       this.scrollChatToBottom();
+    },
+
+    ensureStudentLoggedIn(featureLabel = "fitur ini") {
+      if (this.studentUser) {
+        return true;
+      }
+      this.showToast(`Silakan login terlebih dahulu untuk memakai ${featureLabel}.`, "error");
+      this.openAuthModal("login");
+      return false;
     },
 
     showToast(message, type = "success") {
@@ -153,7 +163,7 @@ function appData() {
       };
       this.authModal.loginForm.password = "";
       this.authModal.isOpen = false;
-      this.showToast(`Selamat datang, ${name}!`);
+      this.showToast(`Selamat datang, ${name}! Chat AI & jadwal booking sudah terbuka.`);
       this.refreshIcons();
     },
 
@@ -167,7 +177,7 @@ function appData() {
         return;
       }
 
-      this.studentUser = { name, email, faculty };
+      this.authModal.loginForm.name = name;
       this.authModal.registerForm = {
         name: "",
         email: "",
@@ -175,7 +185,8 @@ function appData() {
         password: ""
       };
       this.authModal.mode = "login";
-      this.showToast("Akun mahasiswa berhasil didaftarkan! Silakan login.");
+      this.showToast(`Akun ${name} berhasil didaftarkan! Silakan login untuk melanjutkan.`);
+      this.refreshIcons();
     },
 
     logoutStudent() {
@@ -188,6 +199,8 @@ function appData() {
     },
 
     clearChat() {
+      if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
+
       this.chatMessages = [initialWelcome];
       if (window.LocalStore) {
         LocalStore.remove(LocalStore.KEYS.CHAT_MESSAGES);
@@ -198,6 +211,8 @@ function appData() {
     },
 
     async sendQuickPrompt(promptText) {
+      if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
+
       this.activeTab = "ai-chat";
       this.userInput = promptText;
       this.refreshIcons();
@@ -205,6 +220,7 @@ function appData() {
     },
 
     async sendChatMessage() {
+      if (!this.ensureStudentLoggedIn("Chat AI CurhatBuddy")) return;
       if (this.isAiThinking) return;
 
       const text = (this.userInput || "").trim();
@@ -243,6 +259,7 @@ function appData() {
     },
 
     async submitBooking() {
+      if (!this.ensureStudentLoggedIn("jadwal booking konseling")) return;
       if (this.isSubmittingBooking) return;
 
       const name = (this.bookingForm?.name || "").trim();
