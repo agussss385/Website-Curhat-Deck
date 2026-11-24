@@ -1,6 +1,3 @@
-const CONFIG = {
-  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook-test/booking-konselor"
-};
 document.addEventListener('alpine:init', () => {
   Alpine.data('appData', () => ({
     // States
@@ -138,7 +135,7 @@ document.addEventListener('alpine:init', () => {
         ? CONFIG.BOOKING_WEBHOOK_URL.trim()
         : '';
 
-      if (!webhookUrl || webhookUrl.includes('http://localhost:5678/webhook-test/booking-konselor')) {
+      if (!webhookUrl || webhookUrl.includes('DOMAIN_N8N_KAMU')) {
         this.isSubmittingBooking = false;
         this.showToast("Booking tersimpan lokal (URL webhook n8n belum diatur).", "error");
         return;
