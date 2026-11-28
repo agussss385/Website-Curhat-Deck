@@ -445,11 +445,6 @@
                         <option value="Ditolak">Ditolak</option>
                       </select>
                     </td>
-                    <td class="p-3 text-right space-y-1.5 whitespace-nowrap">
-                      <button type="button"
-                              @click="sendBookingUpdateToWebhook(item, 'status_updated')"
-                              class="px-2.5 py-1 bg-lime-300 hover:bg-lime-400 text-black font-bold rounded-lg border-2 border-black text-xs block ml-auto">
-                        Kirim Email / ACC
                       </button>
                       <button type="button"
                               @click="deleteBooking(item.bookingId || item.id)"
