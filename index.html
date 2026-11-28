@@ -438,41 +438,44 @@
                     <td class="p-3">
                       <select :value="item.status || 'Pending'"
                               @change="updateBookingStatus(item.bookingId || item.id, $event.target.value)"
-                              class="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-xs font-bold text-yellow-300 focus:outline-none">
+                              class="bg-slate-800 border-2 border-black rounded-lg px-2 py-1 text-xs font-bold text-white">
                         <option value="Pending">Pending</option>
                         <option value="Disetujui">Disetujui</option>
                         <option value="Selesai">Selesai</option>
-                        <option value="Dibatalkan">Dibatalkan</option>
+                        <option value="Ditolak">Ditolak</option>
                       </select>
                     </td>
                     <td class="p-3 text-right">
                       <button type="button"
                               @click="deleteBooking(item.bookingId || item.id)"
-                              class="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 rounded-lg text-xs font-bold transition-all">
+                              class="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg border border-black">
                         Hapus
                       </button>
                     </td>
                   </tr>
                 </template>
-                <tr x-show="bookings.length === 0">
-                  <td colspan="8" class="p-6 text-center text-slate-400 text-sm">
-                    Belum ada antrean booking konseling masuk.
-                  </td>
-                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
     </template>
+
   </main>
 
-  <!-- Modal Login / Register Mahasiswa -->
+  <!-- Modal Login / Daftar Mahasiswa -->
   <div x-show="authModal.isOpen"
        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
        style="display: none;">
     <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 max-w-md w-full shadow-[6px_6px_0px_0px_#000] space-y-5 relative">
-      <button type="button" @click="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
+      <button type="button" @click="closeAuthModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border-2 border-black flex items-center justify-center text-slate-300">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div>
+        <span class="bg-cyan-300 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black uppercase">Akun Mahasiswa</span>
+        <h3 class="text-xl font-black font-space text-white mt-2">Masuk atau Daftar CurhatDeck</h3>
+      </div>
 
       <div class="flex gap-2 bg-slate-800 p-1 rounded-xl border-2 border-black">
         <button type="button" @click="authModal.mode = 'login'"
@@ -484,13 +487,12 @@
       </div>
 
       <form x-show="authModal.mode === 'login'" @submit.prevent="loginStudent()" class="space-y-4">
-        <h3 class="text-xl font-black font-space text-cyan-300">Masuk Akun Mahasiswa</h3>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Nama / Panggilan</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama / Panggilan</label>
           <input type="text" x-model="authModal.loginForm.name" required placeholder="Contoh: Dylan Putra" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Password</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kata Sandi</label>
           <input type="password" x-model="authModal.loginForm.password" placeholder="••••••••" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <button type="submit" class="w-full py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000]">
@@ -499,47 +501,49 @@
       </form>
 
       <form x-show="authModal.mode === 'register'" @submit.prevent="registerStudent()" class="space-y-4">
-        <h3 class="text-xl font-black font-space text-pink-400">Daftar Akun Mahasiswa</h3>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Nama Lengkap</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Nama Lengkap</label>
           <input type="text" x-model="authModal.registerForm.name" required placeholder="Nama kamu" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Email Kampus</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Email Kampus / Pribadi</label>
           <input type="email" x-model="authModal.registerForm.email" placeholder="nama@polimedia.ac.id" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Jurusan / Prodi</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Jurusan / Prodi</label>
           <input type="text" x-model="authModal.registerForm.faculty" placeholder="Contoh: Teknologi Rekayasa Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
         </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Kata Sandi</label>
+          <input type="password" x-model="authModal.registerForm.password" placeholder="••••••••" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white">
+        </div>
         <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000]">
-          Buat Akun
+          Daftar Akun
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Modal Darurat SOS -->
+  <!-- Modal SOS -->
   <div x-show="showSosModal"
        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
        style="display: none;">
-    <div class="bg-slate-900 border-4 border-red-500 rounded-3xl p-6 max-w-md w-full shadow-[6px_6px_0px_0px_#ef4444] space-y-4 relative">
-      <button type="button" @click="showSosModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
-      <div class="flex items-center gap-2 text-red-400 font-black font-space text-xl">
-        <i data-lucide="siren" class="w-6 h-6"></i>
-        <span>Bantuan Darurat / SOS</span>
+    <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 max-w-md w-full shadow-[6px_6px_0px_0px_#000] space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="bg-red-500 text-white text-xs font-black px-3 py-1 rounded-full border-2 border-black uppercase">Bantuan Darurat (SOS)</span>
+        <button type="button" @click="showSosModal = false" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border-2 border-black flex items-center justify-center text-slate-300">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
       </div>
+      <h3 class="text-xl font-black font-space text-white">Butuh Dukungan Segera?</h3>
       <p class="text-sm text-slate-300 leading-relaxed">
-        Kalau kamu sedang merasa sangat tertekan, kewalahan, atau butuh bantuan segera, jangan hadapi sendirian ya.
+        Kalau kamu sedang merasa sangat tertekan atau berada dalam situasi darurat, segera hubungi layanan bantuan profesional atau orang terdekatmu, serta jadwalkan sesi dengan konselor.
       </p>
-      <div class="space-y-2 text-sm bg-slate-800 p-4 rounded-2xl border-2 border-black">
-        <div><strong class="text-yellow-300">Layanan Darurat Nasional:</strong> 119</div>
-        <div><strong class="text-cyan-300">Konseling Kampus / Konselor:</strong> Hubungi konselor melalui tab Booking Sesi 1-on-1.</div>
-      </div>
-      <button type="button" @click="showSosModal = false" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-black rounded-xl border-2 border-black">
-        Tutup
+      <button type="button" @click="showSosModal = false" class="w-full py-2.5 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black">
+        Mengerti, Tutup
       </button>
     </div>
   </div>
+
 </body>
 </html>
