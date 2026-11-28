@@ -16,6 +16,9 @@ function buildLocalCurhatFallback(lastMessage = "", chatHistory = []) {
         )
     ) || candidates[0];
 
+  const pickRandom = (arr) =>
+    arr[Math.floor(Math.random() * arr.length)];
+
   if (/^(hai+|halo+|hi+|hey+|yo+|p|tes|ping)[\s!.?]*$/i.test(q)) {
     return avoidRepeat([
       "Halo! Gimana Polimedia hari ini, aman atau lagi bikin pala ngebul? 🫂",
@@ -101,11 +104,19 @@ function buildLocalCurhatFallback(lastMessage = "", chatHistory = []) {
     ]);
   }
 
-  return avoidRepeat([
-    `Hmm, soal "${raw}" ya... ceritain aja gimana ceritanya, aku dengerin kok.`,
-    `Oke, dengerin nih—maksudnya gimana tuh soal "${raw}"?`,
-    `Lagi ngerasain gimana nih soal "${raw}"? Santai aja ceritanya.`
-  ]);
+  const freshCandidates = [
+    `Oh gitu, soal ${raw} ya. Lagi bikin apa nih sebenernya?`,
+    `Wah, ${raw} gimana tuh ceritanya? Santai aja jelasinnya.`,
+    `Menarik sih ${raw}—bagian mana yang lagi bikin kamu kepikiran?`,
+    `Oke, nangkap. Lagi ngerjain ${raw} buat apa nih, tugas kampus atau proyekan sendiri?`,
+    `Dengerin kok. Ceritain aja pelan-pelan soal ${raw}, lagi aman nggak?`
+  ];
+
+  const nonRepeating = freshCandidates.filter(
+    (c) => !recentModelTexts.some((prev) => prev.includes(c.slice(0, 22).toLowerCase()))
+  );
+
+  return pickRandom(nonRepeating.length ? nonRepeating : freshCandidates);
 }
 
 function extractGeminiReplyText(payload) {
@@ -140,7 +151,7 @@ function extractGeminiReplyText(payload) {
 
 async function fetchGeminiResponse(chatMessages = []) {
   const FALLBACK_WEBHOOK_URL =
-    "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router";
+    "https://concert-phoenix-several-den.trycloudflare.com/webhook/curhatdeck-router";
 
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
@@ -153,14 +164,16 @@ async function fetchGeminiResponse(chatMessages = []) {
       cfg.BOOKING_ENDPOINT ||
       FALLBACK_WEBHOOK_URL ||
       ""
-  ).trim();
+  )
+    .replace(/\s+/g, "")
+    .trim();
 
   const isPlaceholder =
     !rawEndpoint ||
     !/^https?:\/\//i.test(rawEndpoint) ||
-    rawEndpoint.includes("https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router") ||
-    rawEndpoint.includes("https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router") ||
-    rawEndpoint === "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router";
+    rawEndpoint.includes("<URL-HTTPS-N8N-KAMU>") ||
+    rawEndpoint.includes("YOUR_N8N_WEBHOOK") ||
+    rawEndpoint === "https://URL-WEBHOOK-N8N-KAMU";
 
   const defaultPolimediaSystemInstruction = `Kamu adalah CurhatBuddy di platform CurhatDeck, teman ngobrol santai untuk mahasiswa Polimedia (Politeknik Negeri Media Kreatif).
 
@@ -476,7 +489,7 @@ function appData() {
 
     getWebhookEndpoint() {
       const FALLBACK_WEBHOOK_URL =
-        "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
+        "https://concert-phoenix-several-den.trycloudflare.com/webhook/curhatdeck-router";
 
       const cfg =
         typeof window !== "undefined" && window.CONFIG
@@ -496,7 +509,7 @@ function appData() {
         FALLBACK_WEBHOOK_URL ||
         "";
 
-      return String(rawUrl).trim();
+      return String(rawUrl).replace(/\s+/g, "").trim();
     },
 
     hasValidWebhookEndpoint(endpoint) {
