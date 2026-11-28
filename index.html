@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CurhatDeck - Venting Zone Ala Gen-Z</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='4' y='4' width='56' height='56' rx='16' fill='%23ec4899' stroke='%23000000' stroke-width='5'/><circle cx='24' cy='28' r='5' fill='%23fde047' stroke='%23000000' stroke-width='2.5'/><circle cx='40' cy='28' r='5' fill='%23fde047' stroke='%23000000' stroke-width='2.5'/><path d='M22 39C26 45 38 45 42 39' fill='none' stroke='%23000000' stroke-width='4' stroke-linecap='round'/></svg>">
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -588,8 +589,8 @@
           <input type="text" x-model="authModal.loginForm.name" required placeholder="Contoh: Dylan / Anon" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-400">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password (Opsional)</label>
-          <input type="password" x-model="authModal.loginForm.password" placeholder="••••••••" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password</label>
+          <input type="password" x-model="authModal.loginForm.password" required placeholder="Masukkan password kamu" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-400">
         </div>
         <button type="submit" class="w-full py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] text-sm">
           Masuk Sekarang
@@ -611,8 +612,8 @@
           <input type="text" x-model="authModal.registerForm.faculty" placeholder="Contoh: Teknologi Rekayasa Multimedia" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-400">
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password (Opsional)</label>
-          <input type="password" x-model="authModal.registerForm.password" placeholder="Buat password" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-400">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password (Min. 4 Karakter)</label>
+          <input type="password" x-model="authModal.registerForm.password" required minlength="4" placeholder="Buat password" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-400">
         </div>
         <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] text-sm">
           Daftar &amp; Lanjut Masuk
@@ -660,7 +661,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Password</label>
-          <input type="password" x-model="counselorAuthModal.loginForm.password" placeholder="Masukkan password konselor" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-yellow-300">
+          <input type="password" x-model="counselorAuthModal.loginForm.password" required placeholder="Masukkan password konselor" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-yellow-300">
         </div>
         <button type="submit" class="w-full py-3 bg-yellow-300 hover:bg-yellow-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] text-sm">
           Masuk ke Dashboard Konselor
