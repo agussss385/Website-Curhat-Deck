@@ -161,7 +161,7 @@ function extractGeminiReplyText(payload) {
 
 async function fetchGeminiResponse(chatMessages = []) {
   const FALLBACK_WEBHOOK_URL =
-    "http://localhost:5678/webhook/curhatdeck-router";
+    "http://localhost:5678/webhook-test/curhatdeck-router";
 
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
@@ -268,6 +268,53 @@ Cara ngobrol kamu:
 
 window.fetchGeminiResponse = fetchGeminiResponse;
 
+const COUNSELOR_ACCOUNTS_STORAGE_KEY = "curhatdeck_counselor_accounts_v1";
+const COUNSELOR_SESSION_STORAGE_KEY = "curhatdeck_counselor_session_v1";
+
+function loadCounselorAccounts() {
+  try {
+    const raw = localStorage.getItem(COUNSELOR_ACCOUNTS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveCounselorAccounts(accounts) {
+  try {
+    localStorage.setItem(
+      COUNSELOR_ACCOUNTS_STORAGE_KEY,
+      JSON.stringify(Array.isArray(accounts) ? accounts : [])
+    );
+  } catch (_) {}
+}
+
+function loadActiveCounselorSession() {
+  try {
+    const raw = localStorage.getItem(COUNSELOR_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.name) {
+      return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function saveActiveCounselorSession(session) {
+  try {
+    if (session) {
+      localStorage.setItem(
+        COUNSELOR_SESSION_STORAGE_KEY,
+        JSON.stringify(session)
+      );
+    } else {
+      localStorage.removeItem(COUNSELOR_SESSION_STORAGE_KEY);
+    }
+  } catch (_) {}
+}
+
 function appData() {
   const initialWelcome = {
     role: "model",
@@ -278,6 +325,7 @@ function appData() {
     currentRole: "student",
     activeTab: "ai-chat",
     counselorStatus: "Online",
+    counselorUser: null,
     showSosModal: false,
     studentUser: null,
     userInput: "",
@@ -316,8 +364,27 @@ function appData() {
         password: ""
       }
     },
+    counselorAuthModal: {
+      isOpen: false,
+      mode: "login",
+      loginForm: {
+        identifier: "",
+        password: ""
+      },
+      registerForm: {
+        name: "",
+        email: "",
+        specialty: "",
+        code: "",
+        password: ""
+      }
+    },
 
     init() {
+      const savedCounselor = loadActiveCounselorSession();
+      if (savedCounselor) {
+        this.counselorUser = savedCounselor;
+      }
       this.refreshIcons();
       this.scrollChatToBottom();
     },
@@ -367,13 +434,178 @@ function appData() {
       });
     },
 
-    toggleRoleModal() {
-      this.currentRole = this.currentRole === "student" ? "counselor" : "student";
-      this.showToast(
-        this.currentRole === "counselor"
-          ? "Beralih ke Mode Konselor"
-          : "Beralih ke Mode Mahasiswa"
+    openCounselorAuthModal(mode = "login") {
+      this.counselorAuthModal.mode = mode === "register" ? "register" : "login";
+      if (this.counselorUser && !this.counselorAuthModal.loginForm.identifier) {
+        this.counselorAuthModal.loginForm.identifier =
+          this.counselorUser.email || this.counselorUser.name || "";
+      }
+      this.counselorAuthModal.isOpen = true;
+      this.refreshIcons();
+    },
+
+    closeCounselorAuthModal() {
+      this.counselorAuthModal.isOpen = false;
+      this.refreshIcons();
+    },
+
+    registerCounselor() {
+      const name = (this.counselorAuthModal.registerForm.name || "").trim();
+      const email = (this.counselorAuthModal.registerForm.email || "")
+        .trim()
+        .toLowerCase();
+      const specialty = (
+        this.counselorAuthModal.registerForm.specialty || ""
+      ).trim();
+      const code = (this.counselorAuthModal.registerForm.code || "").trim();
+      const password = String(
+        this.counselorAuthModal.registerForm.password || ""
       );
+
+      if (!name) {
+        this.showToast("Nama lengkap konselor wajib diisi!", "error");
+        return;
+      }
+
+      if (!email || !this.isValidEmail(email)) {
+        this.showToast("Masukkan email konselor yang valid!", "error");
+        return;
+      }
+
+      if (!password || password.length < 4) {
+        this.showToast("Password konselor minimal 4 karakter!", "error");
+        return;
+      }
+
+      const accounts = loadCounselorAccounts();
+      const existingIndex = accounts.findIndex(
+        (acc) => String(acc.email || "").toLowerCase() === email
+      );
+
+      const newAccount = {
+        id:
+          existingIndex >= 0
+            ? accounts[existingIndex].id
+            : `cns-${Date.now()}`,
+        name,
+        email,
+        specialty: specialty || "Konseling Mahasiswa Polimedia",
+        code,
+        password
+      };
+
+      if (existingIndex >= 0) {
+        accounts[existingIndex] = newAccount;
+      } else {
+        accounts.unshift(newAccount);
+      }
+
+      saveCounselorAccounts(accounts);
+
+      this.counselorAuthModal.loginForm.identifier = email;
+      this.counselorAuthModal.loginForm.password = "";
+      this.counselorAuthModal.registerForm = {
+        name: "",
+        email: "",
+        specialty: "",
+        code: "",
+        password: ""
+      };
+      this.counselorAuthModal.mode = "login";
+      this.showToast(
+        `Akun konselor ${name} berhasil didaftarkan! Silakan masuk.`
+      );
+      this.refreshIcons();
+    },
+
+    loginCounselor() {
+      const identifier = (
+        this.counselorAuthModal.loginForm.identifier || ""
+      ).trim();
+      const password = String(this.counselorAuthModal.loginForm.password || "");
+
+      if (!identifier) {
+        this.showToast("Masukkan email atau nama konselor terlebih dahulu!", "error");
+        return;
+      }
+
+      const accounts = loadCounselorAccounts();
+      const idLower = identifier.toLowerCase();
+
+      const matched = accounts.find(
+        (acc) =>
+          String(acc.email || "").toLowerCase() === idLower ||
+          String(acc.name || "").toLowerCase() === idLower
+      );
+
+      if (matched) {
+        if (password && matched.password && password !== matched.password) {
+          this.showToast("Password konselor tidak sesuai!", "error");
+          return;
+        }
+        this.counselorUser = {
+          id: matched.id,
+          name: matched.name,
+          email: matched.email,
+          specialty: matched.specialty || "Konseling Mahasiswa Polimedia",
+          code: matched.code || ""
+        };
+      } else {
+        const isEmail = this.isValidEmail(identifier);
+        const derivedName = isEmail
+          ? identifier
+              .split("@")[0]
+              .replace(/[._-]+/g, " ")
+              .replace(/\b\w/g, (ch) => ch.toUpperCase())
+          : identifier;
+
+        this.counselorUser = {
+          id: `cns-${Date.now()}`,
+          name: derivedName,
+          email: isEmail
+            ? idLower
+            : `${idLower.replace(/\s+/g, ".")}@polimedia.ac.id`,
+          specialty: "Konseling Mahasiswa Polimedia",
+          code: ""
+        };
+      }
+
+      saveActiveCounselorSession(this.counselorUser);
+      this.currentRole = "counselor";
+      this.counselorStatus = "Online";
+      this.counselorAuthModal.loginForm.password = "";
+      this.counselorAuthModal.isOpen = false;
+      this.showToast(
+        `Selamat datang, ${this.counselorUser.name}! Mode Konselor aktif.`
+      );
+      this.refreshIcons();
+    },
+
+    logoutCounselor() {
+      this.counselorUser = null;
+      saveActiveCounselorSession(null);
+      if (this.currentRole === "counselor") {
+        this.currentRole = "student";
+      }
+      this.showToast("Kamu telah keluar dari akun konselor.");
+      this.refreshIcons();
+    },
+
+    toggleRoleModal() {
+      if (this.currentRole === "counselor") {
+        this.currentRole = "student";
+        this.showToast("Beralih ke Mode Mahasiswa");
+        this.refreshIcons();
+        return;
+      }
+
+      if (!this.counselorUser) {
+        this.openCounselorAuthModal("login");
+        return;
+      }
+
+      this.currentRole = "counselor";
+      this.showToast("Beralih ke Mode Konselor");
       this.refreshIcons();
     },
 
@@ -800,6 +1032,8 @@ function appData() {
           body: JSON.stringify({
             ...bookingItem,
             targetEmail: effectiveEmail,
+            counselorName: this.counselorUser?.name || "",
+            counselorEmail: this.counselorUser?.email || "",
             action: actionType,
             updatedAt: new Date().toISOString()
           })
