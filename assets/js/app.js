@@ -158,9 +158,9 @@ async function fetchGeminiResponse(chatMessages = []) {
   const isPlaceholder =
     !rawEndpoint ||
     !/^https?:\/\//i.test(rawEndpoint) ||
-    rawEndpoint.includes("<URL-HTTPS-N8N-KAMU>") ||
-    rawEndpoint.includes("YOUR_N8N_WEBHOOK") ||
-    rawEndpoint === "https://URL-WEBHOOK-N8N-KAMU";
+    rawEndpoint.includes("https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router") ||
+    rawEndpoint.includes("https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router") ||
+    rawEndpoint === "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router";
 
   const defaultPolimediaSystemInstruction = `Kamu adalah CurhatBuddy di platform CurhatDeck, teman ngobrol santai untuk mahasiswa Polimedia (Politeknik Negeri Media Kreatif).
 
