@@ -120,6 +120,14 @@ function buildLocalCurhatFallback(lastMessage = "", chatHistory = []) {
 }
 
 function extractGeminiReplyText(payload) {
+  if (typeof payload === "string") {
+    const trimmed = payload.trim();
+    if (!trimmed || trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+      return "";
+    }
+    return trimmed;
+  }
+
   const item = Array.isArray(payload) ? payload[0] : payload;
   if (!item || typeof item !== "object") return "";
 
@@ -134,10 +142,12 @@ function extractGeminiReplyText(payload) {
     item.data?.reply,
     item.data?.text,
     item.data?.output,
+    item.data?.response,
     item.json?.reply,
     item.json?.text,
     item.json?.output,
     item.content?.parts?.[0]?.text,
+    item.message?.content,
     item.candidates?.[0]?.content?.parts?.[0]?.text
   ];
 
@@ -156,11 +166,14 @@ async function fetchGeminiResponse(chatMessages = []) {
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
       ? window.CONFIG
-      : {};
+      : typeof CONFIG !== "undefined" && typeof CONFIG === "object"
+        ? CONFIG
+        : {};
 
   const rawEndpoint = String(
     cfg.AI_CHAT_ENDPOINT ||
       cfg.N8N_WEBHOOK_URL ||
+      cfg.WEBHOOK_URL ||
       cfg.BOOKING_ENDPOINT ||
       FALLBACK_WEBHOOK_URL ||
       ""
@@ -239,8 +252,8 @@ Cara ngobrol kamu:
           return extracted;
         }
       } catch (_) {
-        const plain = rawText.trim();
-        if (plain && !plain.startsWith("<!DOCTYPE") && !plain.startsWith("<html")) {
+        const plain = extractGeminiReplyText(rawText);
+        if (plain) {
           return plain;
         }
       }
@@ -526,6 +539,23 @@ function appData() {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val || "").trim());
     },
 
+    resolveEffectiveEmail(bookingItem) {
+      const candidates = [
+        bookingItem?.targetEmail,
+        this.isValidEmail(bookingItem?.contact) ? bookingItem.contact : "",
+        bookingItem?.studentEmail,
+        this.studentUser?.email
+      ];
+
+      for (const raw of candidates) {
+        const cleaned = String(raw || "").trim();
+        if (this.isValidEmail(cleaned)) {
+          return cleaned;
+        }
+      }
+      return "";
+    },
+
     async submitBooking() {
       if (!this.ensureStudentLoggedIn("jadwal booking konseling")) return;
       if (this.isSubmittingBooking) return;
@@ -647,7 +677,15 @@ function appData() {
           body: JSON.stringify(newBooking)
         });
 
-        const data = await res.json().catch(() => ({}));
+        const rawText = await res.text().catch(() => "");
+        let data = {};
+        if (rawText) {
+          try {
+            data = JSON.parse(rawText);
+          } catch (_) {
+            data = {};
+          }
+        }
 
         if (!res.ok || data?.ok === false) {
           throw new Error(data?.error || `HTTP ${res.status}`);
@@ -751,12 +789,7 @@ function appData() {
         return;
       }
 
-      const effectiveEmail = (
-        bookingItem.targetEmail ||
-        (this.isValidEmail(bookingItem.contact) ? bookingItem.contact : "") ||
-        bookingItem.studentEmail ||
-        ""
-      ).trim();
+      const effectiveEmail = this.resolveEffectiveEmail(bookingItem);
 
       try {
         const res = await fetch(endpoint, {
@@ -772,7 +805,16 @@ function appData() {
           })
         });
 
-        const data = await res.json().catch(() => ({}));
+        const rawText = await res.text().catch(() => "");
+        let data = {};
+        if (rawText) {
+          try {
+            data = JSON.parse(rawText);
+          } catch (_) {
+            data = {};
+          }
+        }
+
         if (!res.ok || data?.ok === false) {
           throw new Error(data?.error || `HTTP ${res.status}`);
         }
