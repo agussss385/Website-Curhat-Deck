@@ -17,14 +17,40 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Style Maskot CurhatBuddy -->
+  <!-- Style Maskot CurhatBuddy & Ikon -->
   <style>
     @keyframes buddyFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-5px); }
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1.2deg); }
+    }
+    @keyframes buddyBlink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      96% { transform: scaleY(0.12); }
+    }
+    @keyframes sparklePulse {
+      0%, 100% { opacity: 0.55; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.15); }
     }
     .curhat-buddy-float {
-      animation: buddyFloat 3s ease-in-out infinite;
+      animation: buddyFloat 3.2s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .curhat-buddy-eye {
+      animation: buddyBlink 4.8s infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .buddy-sparkle {
+      animation: sparklePulse 2.4s ease-in-out infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .nb-icon-badge {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .nb-icon-badge:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px 0px #000;
     }
   </style>
 
@@ -53,13 +79,18 @@
   <!-- Navbar -->
   <header class="border-b-4 border-black bg-slate-900 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-3 cursor-pointer" @click="activeTab = 'ai-chat'; refreshIcons()">
-        <div class="w-10 h-10 rounded-xl bg-pink-500 border-2 border-black flex items-center justify-center font-black text-xl text-black shadow-[2px_2px_0px_0px_#000]">
-          CD
+      <!-- Logo & Brand Icon CD -->
+      <div class="flex items-center gap-3 cursor-pointer group" @click="activeTab = 'ai-chat'; refreshIcons()">
+        <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-pink-400 via-pink-500 to-amber-300 border-2 border-black flex items-center justify-center font-black text-lg text-black shadow-[3px_3px_0px_0px_#000] nb-icon-badge">
+          <span class="font-space tracking-tighter">CD</span>
+          <span class="buddy-sparkle absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-cyan-300 border-2 border-black flex items-center justify-center text-[9px] leading-none">✦</span>
         </div>
         <div>
-          <h1 class="font-bold text-lg font-space tracking-tight text-pink-400 leading-none">CurhatDeck✨</h1>
-          <span class="text-[10px] text-slate-400 font-mono">Peer-to-Peer & AI Venting</span>
+          <h1 class="font-bold text-lg font-space tracking-tight text-pink-400 group-hover:text-pink-300 transition-colors leading-none flex items-center gap-1">
+            <span>CurhatDeck</span>
+            <i data-lucide="sparkles" class="w-4 h-4 text-yellow-300"></i>
+          </h1>
+          <span class="text-[10px] text-slate-400 font-mono">Peer-to-Peer &amp; AI Venting</span>
         </div>
       </div>
 
@@ -117,41 +148,69 @@
           <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div class="max-w-2xl">
               <span class="bg-yellow-300 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black inline-block mb-3 uppercase tracking-wider">No Judgment Zone 🤫</span>
-              <h2 class="text-3xl sm:text-5xl font-black font-space leading-tight mb-3">Isi Kepala Lagi Penuh & Overthinking?</h2>
+              <h2 class="text-3xl sm:text-5xl font-black font-space leading-tight mb-3">Isi Kepala Lagi Penuh &amp; Overthinking?</h2>
               <p class="text-slate-900 font-semibold text-base sm:text-lg mb-6">Tumpahin semua di sini. Ngobrol bareng Gemini AI 24/7 atau request sesi curhat 1-on-1 langsung bareng konselor.</p>
 
               <div class="flex flex-wrap gap-3">
-                <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
+                <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" class="px-6 py-3 bg-cyan-300 hover:bg-cyan-400 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2 nb-icon-badge">
                   <i data-lucide="bot" class="w-5 h-5"></i>
                   Curhat ke Gemini AI
                 </button>
-                <button type="button" @click="activeTab = 'booking'; refreshIcons()" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2">
-                  <i data-lucide="calendar" class="w-5 h-5"></i>
+                <button type="button" @click="activeTab = 'booking'; refreshIcons()" class="px-6 py-3 bg-white hover:bg-slate-100 text-black font-extrabold rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all flex items-center gap-2 nb-icon-badge">
+                  <i data-lucide="calendar-heart" class="w-5 h-5 text-pink-600"></i>
                   Booking Sesi 1-on-1
                 </button>
               </div>
             </div>
 
-            <!-- Maskot CurhatBuddy -->
-            <div class="flex-shrink-0 bg-slate-900 text-white border-4 border-black rounded-3xl p-4 shadow-[5px_5px_0px_0px_#000] flex flex-col items-center gap-2">
-              <svg viewBox="0 0 180 180" class="w-28 h-28 sm:w-32 sm:h-32 curhat-buddy-float" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="90" cy="95" r="62" fill="#7C3AED" fill-opacity="0.25"/>
-                <circle cx="90" cy="95" r="46" fill="#FACC15" fill-opacity="0.14"/>
-                <path d="M46 58C34 44 38 26 52 32C61 36 63 48 60 56" fill="#EC4899" stroke="#FBCFE8" stroke-width="3" stroke-linecap="round"/>
-                <path d="M134 58C146 44 142 26 128 32C119 36 117 48 120 56" fill="#EC4899" stroke="#FBCFE8" stroke-width="3" stroke-linecap="round"/>
-                <rect x="38" y="46" width="104" height="96" rx="44" fill="#1E1B4B" stroke="#F472B6" stroke-width="3.5"/>
-                <rect x="46" y="54" width="88" height="80" rx="37" fill="#2E1065"/>
-                <ellipse cx="62" cy="102" rx="9" ry="5.5" fill="#F472B6" fill-opacity="0.6"/>
-                <ellipse cx="118" cy="102" rx="9" ry="5.5" fill="#F472B6" fill-opacity="0.6"/>
-                <circle cx="70" cy="86" r="8" fill="#FACC15"/>
-                <circle cx="72.5" cy="83.5" r="3" fill="#FFFFFF"/>
-                <circle cx="110" cy="86" r="8" fill="#FACC15"/>
-                <circle cx="112.5" cy="83.5" r="3" fill="#FFFFFF"/>
-                <path x-show="studentUser" d="M73 104C80 116 100 116 107 104" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
-                <path x-show="!studentUser" d="M78 108C85 112 95 112 102 108" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
-                <rect x="72" y="122" width="36" height="12" rx="6" fill="#67E8F9"/>
-                <circle cx="90" cy="128" r="3" fill="#1E1B4B"/>
+            <!-- Maskot CurhatBuddy Menarik -->
+            <div class="flex-shrink-0 bg-slate-900 text-white border-4 border-black rounded-3xl p-4 sm:p-5 shadow-[5px_5px_0px_0px_#000] flex flex-col items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded-full bg-pink-500 text-black text-[10px] font-black uppercase tracking-wider border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+                AI Buddy • 24/7
+              </span>
+
+              <svg viewBox="0 0 200 190" class="w-32 h-32 sm:w-36 sm:h-36 curhat-buddy-float" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Maskot CurhatBuddy">
+                <circle cx="100" cy="98" r="68" fill="#7C3AED" fill-opacity="0.22"/>
+                <circle cx="100" cy="98" r="50" fill="#EC4899" fill-opacity="0.12"/>
+                <path class="buddy-sparkle" d="M30 44L33 51L40 54L33 57L30 64L27 57L20 54L27 51L30 44Z" fill="#FDE047"/>
+                <path class="buddy-sparkle" d="M170 38L172 43L177 45L172 47L170 52L168 47L163 45L168 43L170 38Z" fill="#67E8F9"/>
+                <circle cx="172" cy="128" r="4" fill="#F472B6"/>
+                <circle cx="28" cy="122" r="3.5" fill="#A3E635"/>
+
+                <path d="M56 54C42 36 46 18 62 25C71 29 73 42 70 51" fill="#EC4899" stroke="#000000" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="56" cy="28" r="5" fill="#FDE047" stroke="#000000" stroke-width="2.5"/>
+
+                <path d="M144 54C158 36 154 18 138 25C129 29 127 42 130 51" fill="#EC4899" stroke="#000000" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="144" cy="28" r="5" fill="#67E8F9" stroke="#000000" stroke-width="2.5"/>
+
+                <rect x="34" y="76" width="16" height="34" rx="8" fill="#22D3EE" stroke="#000000" stroke-width="3.5"/>
+                <rect x="150" y="76" width="16" height="34" rx="8" fill="#22D3EE" stroke="#000000" stroke-width="3.5"/>
+
+                <rect x="46" y="44" width="108" height="98" rx="44" fill="#1E1B4B" stroke="#000000" stroke-width="4"/>
+                <rect x="53" y="51" width="94" height="84" rx="38" fill="#31106E" stroke="#F472B6" stroke-width="2.5"/>
+
+                <ellipse cx="70" cy="103" rx="10" ry="6" fill="#F472B6" fill-opacity="0.65"/>
+                <ellipse cx="130" cy="103" rx="10" ry="6" fill="#F472B6" fill-opacity="0.65"/>
+
+                <g class="curhat-buddy-eye">
+                  <circle cx="78" cy="86" r="9.5" fill="#FACC15" stroke="#000000" stroke-width="2.5"/>
+                  <circle cx="81" cy="83" r="3.5" fill="#FFFFFF"/>
+                  <circle cx="75.5" cy="88.5" r="1.8" fill="#FFFFFF" fill-opacity="0.8"/>
+
+                  <circle cx="122" cy="86" r="9.5" fill="#FACC15" stroke="#000000" stroke-width="2.5"/>
+                  <circle cx="125" cy="83" r="3.5" fill="#FFFFFF"/>
+                  <circle cx="119.5" cy="88.5" r="1.8" fill="#FFFFFF" fill-opacity="0.8"/>
+                </g>
+
+                <path x-show="studentUser" d="M81 105C89 119 111 119 119 105" stroke="#FDE047" stroke-width="4.5" stroke-linecap="round"/>
+                <path x-show="!studentUser" d="M86 108C94 114 106 114 114 108" stroke="#FDE047" stroke-width="4" stroke-linecap="round"/>
+
+                <rect x="76" y="125" width="48" height="13" rx="6.5" fill="#67E8F9" stroke="#000000" stroke-width="2.5"/>
+                <circle cx="92" cy="131.5" r="2.5" fill="#1E1B4B"/>
+                <circle cx="100" cy="131.5" r="2.5" fill="#EC4899"/>
+                <circle cx="108" cy="131.5" r="2.5" fill="#1E1B4B"/>
               </svg>
+
               <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-slate-800 border-2 border-black text-cyan-300 text-center"
                     x-text="studentUser ? `Halo ${studentUser.name}! CurhatBuddy siap` : 'CurhatBuddy • Login dulu ya'"></span>
             </div>
@@ -161,10 +220,10 @@
         <!-- Navigation Tabs -->
         <div class="flex gap-2 border-b-2 border-slate-800 pb-2 overflow-x-auto">
           <button type="button" @click="activeTab = 'ai-chat'; refreshIcons()" :class="activeTab === 'ai-chat' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
-            <i data-lucide="sparkles" class="w-4 h-4"></i> AI Peer Counselor
+            <i data-lucide="sparkles" class="w-4 h-4" :class="activeTab === 'ai-chat' ? 'text-black' : 'text-yellow-300'"></i> AI Peer Counselor
           </button>
           <button type="button" @click="activeTab = 'booking'; refreshIcons()" :class="activeTab === 'booking' ? 'bg-pink-500 text-black border-black font-black' : 'bg-slate-900 text-slate-400 border-transparent hover:text-white'" class="px-5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2">
-            <i data-lucide="heart-handshake" class="w-4 h-4"></i> Sesi Privat Konselor
+            <i data-lucide="heart-handshake" class="w-4 h-4" :class="activeTab === 'booking' ? 'text-black' : 'text-pink-300'"></i> Sesi Privat Konselor
           </button>
         </div>
 
@@ -173,7 +232,7 @@
           <div class="flex-1 flex flex-col overflow-hidden transition-all" :class="!studentUser ? 'blur-[2px] opacity-40 pointer-events-none select-none' : ''">
             <div class="bg-slate-800 p-4 border-b-2 border-black flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black font-bold">
+                <div class="w-9 h-9 rounded-xl bg-cyan-400 border-2 border-black flex items-center justify-center text-black font-bold shadow-[2px_2px_0px_0px_#000]">
                   <i data-lucide="bot" class="w-5 h-5"></i>
                 </div>
                 <div>
@@ -189,16 +248,16 @@
             <!-- Quick Prompts -->
             <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto text-xs">
               <span class="text-slate-500 font-bold whitespace-nowrap">Topic Quick-Pick:</span>
-              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi & Deadline</button>
+              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Kena revisi bertubi-tubi sama deadline proyek/TA di kampus, kepala rasanya mau pecah 😭')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎬 Revisi &amp; Deadline</button>
               <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Lagi kena creative block dan burnout pas ngerjain karya/portofolio')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">🎨 Creative Block</button>
-              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang & Future Anxiety</button>
+              <button type="button" :disabled="!studentUser" @click="sendQuickPrompt('Pengen cerita tentang anxious sama masa depan, magang/karier, atau ngerasa FOMO')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 whitespace-nowrap">💼 Magang &amp; Future Anxiety</button>
             </div>
 
             <!-- Chat History Window -->
             <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4">
               <template x-for="(msg, index) in chatMessages" :key="index">
                 <div class="flex gap-3" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-                  <div x-show="msg.role === 'model'" class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex-shrink-0 flex items-center justify-center text-black font-bold">
+                  <div x-show="msg.role === 'model'" class="w-8 h-8 rounded-xl bg-cyan-400 border-2 border-black flex-shrink-0 flex items-center justify-center text-black font-bold shadow-[2px_2px_0px_0px_#000]">
                     <i data-lucide="bot" class="w-4 h-4"></i>
                   </div>
                   <div class="max-w-[80%] rounded-2xl p-4 border-2 border-black text-sm leading-relaxed"
@@ -210,7 +269,7 @@
 
               <!-- Loading Indicator -->
               <div x-show="isAiThinking" class="flex gap-3 justify-start">
-                <div class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-black flex items-center justify-center text-black">
+                <div class="w-8 h-8 rounded-xl bg-cyan-400 border-2 border-black flex items-center justify-center text-black shadow-[2px_2px_0px_0px_#000]">
                   <i data-lucide="bot" class="w-4 h-4"></i>
                 </div>
                 <div class="bg-slate-800 border-2 border-black rounded-2xl p-4 text-xs font-mono text-cyan-300 animate-pulse">
@@ -230,8 +289,9 @@
 
           <!-- Overlay Kunci Chat AI Sebelum Login -->
           <div x-show="!studentUser" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center space-y-4">
-            <span class="px-3 py-1 rounded-full bg-yellow-300 text-black text-xs font-black border-2 border-black shadow-[2px_2px_0px_0px_#000]">
-              🔒 Chat AI Terkunci
+            <span class="px-3 py-1 rounded-full bg-yellow-300 text-black text-xs font-black border-2 border-black shadow-[2px_2px_0px_0px_#000] inline-flex items-center gap-1.5">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>Chat AI Terkunci</span>
             </span>
             <h4 class="text-xl sm:text-2xl font-black font-space text-white">Login Dulu Buat Ngobrol Sama CurhatBuddy</h4>
             <p class="text-xs sm:text-sm text-slate-300 max-w-md">
@@ -249,7 +309,7 @@
           <div class="max-w-xl mx-auto space-y-6 transition-all" :class="!studentUser ? 'blur-[2px] opacity-40 pointer-events-none select-none' : ''">
             <div>
               <h3 class="text-2xl font-black font-space text-pink-400">Booking Sesi Curhat 1-on-1</h3>
-              <p class="text-slate-400 text-sm mt-1">Jadwalkan sesi konsultasi langsung dengan konselor. Identitas kamu aman & terjaga privasinya.</p>
+              <p class="text-slate-400 text-sm mt-1">Jadwalkan sesi konsultasi langsung dengan konselor. Identitas kamu aman &amp; terjaga privasinya.</p>
             </div>
 
             <form @submit.prevent="if (!studentUser) { openAuthModal('login'); return; } submitBooking()" class="space-y-4">
@@ -325,8 +385,9 @@
 
           <!-- Overlay Kunci Jadwal Booking Sebelum Login -->
           <div x-show="!studentUser" class="absolute inset-0 z-10 bg-slate-950/75 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center space-y-4">
-            <span class="px-3 py-1 rounded-full bg-pink-500 text-black text-xs font-black border-2 border-black shadow-[2px_2px_0px_0px_#000]">
-              🔒 Jadwal Booking Terkunci
+            <span class="px-3 py-1 rounded-full bg-pink-500 text-black text-xs font-black border-2 border-black shadow-[2px_2px_0px_0px_#000] inline-flex items-center gap-1.5">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>Jadwal Booking Terkunci</span>
             </span>
             <h4 class="text-xl sm:text-2xl font-black font-space text-white">Login Dulu Buat Mengatur Jadwal Konseling</h4>
             <p class="text-xs sm:text-sm text-slate-300 max-w-md">
@@ -347,7 +408,7 @@
         <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000] flex flex-wrap items-center justify-between gap-4">
           <div>
             <span class="bg-pink-500 text-black text-xs font-black px-3 py-1 rounded-full border-2 border-black uppercase">Dashboard Konselor</span>
-            <h2 class="text-2xl font-black font-space mt-1">Panel Manajemen Sesi & Konseling</h2>
+            <h2 class="text-2xl font-black font-space mt-1">Panel Manajemen Sesi &amp; Konseling</h2>
           </div>
 
           <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-2xl border-2 border-black">
@@ -360,7 +421,7 @@
 
         <div class="bg-slate-900 border-4 border-black rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000]">
           <h3 class="text-lg font-bold font-space text-pink-400 mb-4 flex items-center gap-2">
-            <i data-lucide="inbox" class="w-5 h-5"></i> Antrean Permintaan Sesi 1-on-1
+            <i data-lucide="inbox" class="w-5 h-5 text-cyan-300"></i> Antrean Permintaan Sesi 1-on-1
           </h3>
 
           <div class="overflow-x-auto">
@@ -369,8 +430,8 @@
                 <tr>
                   <th class="p-3">No. Seri</th>
                   <th class="p-3">Nama / Prodi</th>
-                  <th class="p-3">Kontak & Email Tujuan</th>
-                  <th class="p-3">Mode & Tempat / Meet</th>
+                  <th class="p-3">Kontak &amp; Email Tujuan</th>
+                  <th class="p-3">Mode &amp; Tempat / Meet</th>
                   <th class="p-3">Jadwal</th>
                   <th class="p-3">Topik Curhat</th>
                   <th class="p-3">Status</th>
@@ -428,7 +489,7 @@
                           <button type="button"
                                   @click="updateMeetingLink(item.bookingId || item.id, item.meetingLink, true)"
                                   class="px-2 py-0.5 bg-cyan-300 hover:bg-cyan-400 text-black font-bold rounded border border-black text-[11px]">
-                            Simpan & Kirim
+                            Simpan &amp; Kirim
                           </button>
                         </div>
                       </div>
@@ -448,8 +509,9 @@
                     <td class="p-3 text-right whitespace-nowrap">
                       <button type="button"
                               @click="deleteBooking(item.bookingId || item.id)"
-                              class="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-bold rounded-lg border border-red-500/40 text-xs">
-                        Hapus
+                              class="px-2.5 py-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-bold rounded-lg border border-red-500/40 text-xs inline-flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <span>Hapus</span>
                       </button>
                     </td>
                   </tr>
@@ -554,7 +616,7 @@
           <input type="password" x-model="authModal.registerForm.password" placeholder="Buat password" class="w-full bg-slate-800 border-2 border-black rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-400">
         </div>
         <button type="submit" class="w-full py-3 bg-pink-500 hover:bg-pink-400 text-black font-black rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_#000] text-sm">
-          Daftar & Lanjut Masuk
+          Daftar &amp; Lanjut Masuk
         </button>
       </form>
     </div>
