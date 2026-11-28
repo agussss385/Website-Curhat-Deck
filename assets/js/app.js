@@ -160,7 +160,7 @@ function extractGeminiReplyText(payload) {
 }
 
 const DEFAULT_WEBHOOK_URL =
-  "https://concert-phoenix-several-den.trycloudflare.com/webhook/curhatdeck-router";
+  "http://localhost:5678/webhook/curhatdeck-router";
 
 async function fetchGeminiResponse(chatMessages = []) {
   const FALLBACK_WEBHOOK_URL = DEFAULT_WEBHOOK_URL;
