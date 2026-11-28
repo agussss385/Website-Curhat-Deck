@@ -29,10 +29,8 @@
   </style>
 
   <!-- Konfigurasi & Script Aplikasi -->
-  <script src="./config.js"></script>
+  <script src="./config.js" onerror="this.remove()"></script>
   <script src="./app.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- Alpine.js (Defer) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-violet-950 text-slate-100 min-h-screen flex flex-col font-sans relative selection:bg-pink-500 selection:text-white" x-data="appData()">
