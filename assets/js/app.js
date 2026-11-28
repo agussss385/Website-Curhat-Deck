@@ -159,9 +159,11 @@ function extractGeminiReplyText(payload) {
   return "";
 }
 
+const DEFAULT_WEBHOOK_URL =
+  "https://concert-phoenix-several-den.trycloudflare.com/webhook/curhatdeck-router";
+
 async function fetchGeminiResponse(chatMessages = []) {
-  const FALLBACK_WEBHOOK_URL =
-    "http://localhost:5678/webhook-test/curhatdeck-router";
+  const FALLBACK_WEBHOOK_URL = DEFAULT_WEBHOOK_URL;
 
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
@@ -268,8 +270,54 @@ Cara ngobrol kamu:
 
 window.fetchGeminiResponse = fetchGeminiResponse;
 
+const STUDENT_ACCOUNTS_STORAGE_KEY = "curhatdeck_student_accounts_v1";
+const STUDENT_SESSION_STORAGE_KEY = "curhatdeck_student_session_v1";
 const COUNSELOR_ACCOUNTS_STORAGE_KEY = "curhatdeck_counselor_accounts_v1";
 const COUNSELOR_SESSION_STORAGE_KEY = "curhatdeck_counselor_session_v1";
+
+function loadStudentAccounts() {
+  try {
+    const raw = localStorage.getItem(STUDENT_ACCOUNTS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveStudentAccounts(accounts) {
+  try {
+    localStorage.setItem(
+      STUDENT_ACCOUNTS_STORAGE_KEY,
+      JSON.stringify(Array.isArray(accounts) ? accounts : [])
+    );
+  } catch (_) {}
+}
+
+function loadActiveStudentSession() {
+  try {
+    const raw = localStorage.getItem(STUDENT_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.name) {
+      return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function saveActiveStudentSession(session) {
+  try {
+    if (session) {
+      localStorage.setItem(
+        STUDENT_SESSION_STORAGE_KEY,
+        JSON.stringify(session)
+      );
+    } else {
+      localStorage.removeItem(STUDENT_SESSION_STORAGE_KEY);
+    }
+  } catch (_) {}
+}
 
 function loadCounselorAccounts() {
   try {
@@ -381,10 +429,19 @@ function appData() {
     },
 
     init() {
+      const savedStudent = loadActiveStudentSession();
+      if (savedStudent) {
+        this.studentUser = savedStudent;
+        if (savedStudent.faculty && !this.bookingForm.faculty) {
+          this.bookingForm.faculty = savedStudent.faculty;
+        }
+      }
+
       const savedCounselor = loadActiveCounselorSession();
       if (savedCounselor) {
         this.counselorUser = savedCounselor;
       }
+
       this.refreshIcons();
       this.scrollChatToBottom();
     },
@@ -482,11 +539,19 @@ function appData() {
         (acc) => String(acc.email || "").toLowerCase() === email
       );
 
+      if (existingIndex >= 0) {
+        this.showToast(
+          "Email konselor sudah terdaftar. Silakan masuk di tab Masuk Konselor.",
+          "error"
+        );
+        this.counselorAuthModal.loginForm.identifier = email;
+        this.counselorAuthModal.mode = "login";
+        this.refreshIcons();
+        return;
+      }
+
       const newAccount = {
-        id:
-          existingIndex >= 0
-            ? accounts[existingIndex].id
-            : `cns-${Date.now()}`,
+        id: `cns-${Date.now()}`,
         name,
         email,
         specialty: specialty || "Konseling Mahasiswa Polimedia",
@@ -494,12 +559,7 @@ function appData() {
         password
       };
 
-      if (existingIndex >= 0) {
-        accounts[existingIndex] = newAccount;
-      } else {
-        accounts.unshift(newAccount);
-      }
-
+      accounts.unshift(newAccount);
       saveCounselorAccounts(accounts);
 
       this.counselorAuthModal.loginForm.identifier = email;
@@ -538,37 +598,26 @@ function appData() {
           String(acc.name || "").toLowerCase() === idLower
       );
 
-      if (matched) {
-        if (password && matched.password && password !== matched.password) {
-          this.showToast("Password konselor tidak sesuai!", "error");
-          return;
-        }
-        this.counselorUser = {
-          id: matched.id,
-          name: matched.name,
-          email: matched.email,
-          specialty: matched.specialty || "Konseling Mahasiswa Polimedia",
-          code: matched.code || ""
-        };
-      } else {
-        const isEmail = this.isValidEmail(identifier);
-        const derivedName = isEmail
-          ? identifier
-              .split("@")[0]
-              .replace(/[._-]+/g, " ")
-              .replace(/\b\w/g, (ch) => ch.toUpperCase())
-          : identifier;
-
-        this.counselorUser = {
-          id: `cns-${Date.now()}`,
-          name: derivedName,
-          email: isEmail
-            ? idLower
-            : `${idLower.replace(/\s+/g, ".")}@polimedia.ac.id`,
-          specialty: "Konseling Mahasiswa Polimedia",
-          code: ""
-        };
+      if (!matched) {
+        this.showToast(
+          "Akun konselor belum terdaftar! Silakan daftar dulu di tab Daftar Konselor.",
+          "error"
+        );
+        return;
       }
+
+      if (matched.password && password !== matched.password) {
+        this.showToast("Password konselor tidak sesuai!", "error");
+        return;
+      }
+
+      this.counselorUser = {
+        id: matched.id,
+        name: matched.name,
+        email: matched.email,
+        specialty: matched.specialty || "Konseling Mahasiswa Polimedia",
+        code: matched.code || ""
+      };
 
       saveActiveCounselorSession(this.counselorUser);
       this.currentRole = "counselor";
@@ -610,7 +659,7 @@ function appData() {
     },
 
     openAuthModal(mode = "login") {
-      this.authModal.mode = mode;
+      this.authModal.mode = mode === "register" ? "register" : "login";
       this.authModal.isOpen = true;
       this.refreshIcons();
     },
@@ -620,22 +669,43 @@ function appData() {
     },
 
     loginStudent() {
-      const name = (this.authModal.loginForm.name || "").trim();
-      if (!name) {
+      const nameInput = (this.authModal.loginForm.name || "").trim();
+      const passwordInput = String(this.authModal.loginForm.password || "");
+
+      if (!nameInput) {
         this.showToast("Masukkan nama kamu terlebih dahulu!", "error");
         return;
       }
 
-      const registeredFaculty = (this.authModal.registerForm.faculty || "").trim();
-      const registeredEmail = (this.authModal.registerForm.email || "").trim();
+      const accounts = loadStudentAccounts();
+      const inputLower = nameInput.toLowerCase();
+
+      const matched = accounts.find(
+        (acc) =>
+          String(acc.name || "").toLowerCase() === inputLower ||
+          String(acc.email || "").toLowerCase() === inputLower
+      );
+
+      if (!matched) {
+        this.showToast(
+          "Akun belum terdaftar! Silakan daftar dulu di tab Daftar Akun.",
+          "error"
+        );
+        return;
+      }
+
+      if (matched.password && passwordInput !== matched.password) {
+        this.showToast("Password salah! Cek kembali password akun kamu.", "error");
+        return;
+      }
 
       this.studentUser = {
-        name,
-        email:
-          registeredEmail ||
-          `${name.toLowerCase().replace(/\s+/g, ".")}@polimedia.ac.id`,
-        faculty: registeredFaculty || this.studentUser?.faculty || ""
+        id: matched.id,
+        name: matched.name,
+        email: matched.email,
+        faculty: matched.faculty || ""
       };
+      saveActiveStudentSession(this.studentUser);
 
       if (this.studentUser.faculty && !this.bookingForm.faculty) {
         this.bookingForm.faculty = this.studentUser.faculty;
@@ -644,28 +714,64 @@ function appData() {
       this.authModal.loginForm.password = "";
       this.authModal.isOpen = false;
       this.showToast(
-        `Selamat datang, ${name}! Chat AI & jadwal booking sudah terbuka.`
+        `Selamat datang, ${this.studentUser.name}! Chat AI & jadwal booking sudah terbuka.`
       );
       this.refreshIcons();
     },
 
     registerStudent() {
       const name = (this.authModal.registerForm.name || "").trim();
-      const email = (this.authModal.registerForm.email || "").trim();
+      const email = (this.authModal.registerForm.email || "").trim().toLowerCase();
       const faculty = (this.authModal.registerForm.faculty || "").trim();
+      const password = String(this.authModal.registerForm.password || "");
 
       if (!name) {
-        this.showToast("Nama lengkap wajib diisi!", "error");
+        this.showToast("Nama lengkap / panggilan wajib diisi!", "error");
         return;
       }
 
-      this.authModal.loginForm.name = name;
-      if (email) {
-        this.authModal.registerForm.email = email;
+      if (!password || password.length < 4) {
+        this.showToast("Buat password minimal 4 karakter saat mendaftar!", "error");
+        return;
       }
+
+      const accounts = loadStudentAccounts();
+      const nameLower = name.toLowerCase();
+
+      const existing = accounts.find(
+        (acc) =>
+          String(acc.name || "").toLowerCase() === nameLower ||
+          (email && String(acc.email || "").toLowerCase() === email)
+      );
+
+      if (existing) {
+        this.showToast(
+          "Akun mahasiswa sudah terdaftar. Silakan masuk di tab Masuk.",
+          "error"
+        );
+        this.authModal.loginForm.name = existing.name;
+        this.authModal.mode = "login";
+        this.refreshIcons();
+        return;
+      }
+
+      const newStudentAccount = {
+        id: `std-${Date.now()}`,
+        name,
+        email: email || `${nameLower.replace(/\s+/g, ".")}@polimedia.ac.id`,
+        faculty,
+        password
+      };
+
+      accounts.unshift(newStudentAccount);
+      saveStudentAccounts(accounts);
+
       if (faculty) {
         this.bookingForm.faculty = faculty;
       }
+
+      this.authModal.loginForm.name = name;
+      this.authModal.loginForm.password = "";
       this.authModal.registerForm = {
         name: "",
         email: "",
@@ -674,13 +780,14 @@ function appData() {
       };
       this.authModal.mode = "login";
       this.showToast(
-        `Akun ${name} berhasil didaftarkan! Silakan login untuk melanjutkan.`
+        `Akun mahasiswa "${name}" berhasil didaftarkan! Silakan masuk.`
       );
       this.refreshIcons();
     },
 
     logoutStudent() {
       this.studentUser = null;
+      saveActiveStudentSession(null);
       this.showToast("Kamu telah keluar dari akun mahasiswa.");
       this.refreshIcons();
     },
@@ -733,9 +840,6 @@ function appData() {
     },
 
     getWebhookEndpoint() {
-      const FALLBACK_WEBHOOK_URL =
-        "https://concert-phoenix-several-den.trycloudflare.com/webhook/curhatdeck-router";
-
       const cfg =
         typeof window !== "undefined" && window.CONFIG
           ? window.CONFIG
@@ -751,7 +855,7 @@ function appData() {
         cfg.bookingEndpoint ||
         cfg.bookingWebhookUrl ||
         cfg.n8nWebhookUrl ||
-        FALLBACK_WEBHOOK_URL ||
+        DEFAULT_WEBHOOK_URL ||
         "";
 
       return String(rawUrl).replace(/\s+/g, "").trim();
@@ -1053,10 +1157,18 @@ function appData() {
           throw new Error(data?.error || `HTTP ${res.status}`);
         }
 
+        if (data?.meetingLink) {
+          bookingItem.meetingLink = String(data.meetingLink).trim();
+        }
+        if (data?.status) {
+          bookingItem.status = String(data.status).trim();
+        }
+        this.bookings = [...this.bookings];
+
         this.showToast(
           effectiveEmail
-            ? `Data & link Google Meet dikirim ke ${effectiveEmail}`
-            : "Data booking diperbarui ke server."
+            ? `Data & status (${bookingItem.status}) dikirim ke ${effectiveEmail}`
+            : `Status booking (${bookingItem.status}) diperbarui ke server.`
         );
       } catch (err) {
         console.error("Webhook update error:", err);
@@ -1066,12 +1178,12 @@ function appData() {
 
     updateBookingStatus(id, newStatus) {
       const target = this.bookings.find((b) => b.id === id || b.bookingId === id);
-      if (target) {
-        target.status = newStatus;
-        this.bookings = [...this.bookings];
-        this.showToast(`Status booking diubah menjadi ${newStatus}`);
-        this.sendBookingUpdateToWebhook(target, "status_updated");
-      }
+      if (!target) return;
+
+      target.status = newStatus;
+      this.bookings = [...this.bookings];
+      this.showToast(`Status booking diubah menjadi ${newStatus}`);
+      this.sendBookingUpdateToWebhook(target, "status_updated");
     },
 
     deleteBooking(id) {
