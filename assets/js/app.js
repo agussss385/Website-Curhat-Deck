@@ -428,6 +428,81 @@ function appData() {
       }
     },
 
+    // State Tambahan: Mikrofon, Maskot Responsif, Salin & Dashboard Konselor
+    isListening: false,
+    speechSupported:
+      typeof window !== "undefined" &&
+      Boolean(window.SpeechRecognition || window.webkitSpeechRecognition),
+    _recognition: null,
+    isBuddyHovered: false,
+    copiedMessageIndex: null,
+    bookingFilterStatus: "Semua",
+    bookingFilterMode: "Semua",
+    bookingSearch: "",
+    copiedBookingKey: "",
+
+    get buddyBubbleText() {
+      if (this.isListening) {
+        return "Dengerin suara kamu nih... 🎙️";
+      }
+      if (this.isAiThinking) {
+        return "Lagi nyusun jawaban buat kamu... ✨";
+      }
+      if (this.isBuddyHovered) {
+        return this.studentUser
+          ? `Siap nemenin ${this.studentUser.name} ngobrol!`
+          : "Klik chat atau login dulu yuk!";
+      }
+      if (this.studentUser) {
+        return `Halo ${this.studentUser.name}! CurhatBuddy siap`;
+      }
+      return "CurhatBuddy • Login dulu ya";
+    },
+
+    get bookingStats() {
+      const list = Array.isArray(this.bookings) ? this.bookings : [];
+      return {
+        total: list.length,
+        pending: list.filter((b) => (b.status || "Pending") === "Pending").length,
+        approved: list.filter((b) => b.status === "Disetujui").length,
+        done: list.filter((b) => b.status === "Selesai").length
+      };
+    },
+
+    get filteredBookings() {
+      const q = String(this.bookingSearch || "").trim().toLowerCase();
+      return (Array.isArray(this.bookings) ? this.bookings : []).filter((b) => {
+        const currentStatus = b.status || "Pending";
+        const currentMode = b.mode || "Offline";
+
+        const matchStatus =
+          this.bookingFilterStatus === "Semua" ||
+          currentStatus === this.bookingFilterStatus;
+
+        const matchMode =
+          this.bookingFilterMode === "Semua" ||
+          currentMode === this.bookingFilterMode;
+
+        const hay = [
+          b.bookingId,
+          b.id,
+          b.name,
+          b.faculty,
+          b.major,
+          b.contact,
+          b.targetEmail,
+          b.topic,
+          b.meetingLink
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        const matchSearch = !q || hay.includes(q);
+        return matchStatus && matchMode && matchSearch;
+      });
+    },
+
     init() {
       const savedStudent = loadActiveStudentSession();
       if (savedStudent) {
@@ -836,6 +911,137 @@ function appData() {
       } finally {
         this.isAiThinking = false;
         this.refreshIcons();
+      }
+    },
+
+    toggleVoiceInput() {
+      if (!this.ensureStudentLoggedIn("fitur suara mikrofon")) return;
+
+      const SpeechRec =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRec) {
+        this.showToast(
+          "Browser ini belum mendukung Speech-to-Text. Coba pakai Chrome ya.",
+          "error"
+        );
+        return;
+      }
+
+      if (this.isListening && this._recognition) {
+        this._recognition.stop();
+        return;
+      }
+
+      const recognition = new SpeechRec();
+      recognition.lang = "id-ID";
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      const baseText = (this.userInput || "").trim();
+
+      recognition.onstart = () => {
+        this.isListening = true;
+        this.showToast("Mikrofon aktif! Silakan mulai bicara...");
+        this.refreshIcons();
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        const spoken = transcript.trim();
+        this.userInput = baseText ? `${baseText} ${spoken}` : spoken;
+      };
+
+      recognition.onerror = (event) => {
+        this.isListening = false;
+        this.refreshIcons();
+
+        if (event.error === "not-allowed") {
+          this.showToast(
+            "Izin mikrofon ditolak. Aktifkan izin mic di pengaturan browser.",
+            "error"
+          );
+        } else if (event.error === "no-speech") {
+          this.showToast("Suara belum terdeteksi, coba bicara lagi ya.", "error");
+        } else {
+          this.showToast(`Gagal merekam suara (${event.error}).`, "error");
+        }
+      };
+
+      recognition.onend = () => {
+        this.isListening = false;
+        this._recognition = null;
+        this.refreshIcons();
+      };
+
+      this._recognition = recognition;
+
+      try {
+        recognition.start();
+      } catch (_) {
+        this.isListening = false;
+        this._recognition = null;
+        this.refreshIcons();
+      }
+    },
+
+    async copyAiReply(text, index) {
+      const cleanText = String(text || "").trim();
+      if (!cleanText) return;
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(cleanText);
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = cleanText;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          document.body.removeChild(temp);
+        }
+        this.copiedMessageIndex = index;
+        this.showToast("Balasan CurhatBuddy disalin ke clipboard!");
+        setTimeout(() => {
+          if (this.copiedMessageIndex === index) {
+            this.copiedMessageIndex = null;
+          }
+        }, 1800);
+      } catch (_) {
+        this.showToast("Gagal menyalin teks balasan.", "error");
+      }
+    },
+
+    async copyMeetingLink(link, key) {
+      const cleanLink = String(link || "").trim();
+      if (!cleanLink) {
+        this.showToast("Belum ada link Google Meet untuk disalin.", "error");
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(cleanLink);
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = cleanLink;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          document.body.removeChild(temp);
+        }
+        this.copiedBookingKey = key;
+        this.showToast("Link Google Meet berhasil disalin!");
+        setTimeout(() => {
+          if (this.copiedBookingKey === key) {
+            this.copiedBookingKey = "";
+          }
+        }, 1800);
+      } catch (_) {
+        this.showToast("Gagal menyalin link Google Meet.", "error");
       }
     },
 
