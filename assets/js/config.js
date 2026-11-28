@@ -1,8 +1,8 @@
 // Configuration File
 window.CONFIG = {
-  BOOKING_ENDPOINT: "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router",
-  BOOKING_WEBHOOK_URL: "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router",
-  N8N_WEBHOOK_URL: "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router",
+  BOOKING_ENDPOINT: "http://localhost:5678/webhook/curhatdeck-router",
+  BOOKING_WEBHOOK_URL: "http://localhost:5678/webhook/curhatdeck-router",
+  N8N_WEBHOOK_URL: "http://localhost:5678/webhook/curhatdeck-router",
   // Opsional: jika punya endpoint khusus chat AI, isi di sini; jika kosong akan memakai N8N_WEBHOOK_URL
   AI_CHAT_ENDPOINT: "",
 
