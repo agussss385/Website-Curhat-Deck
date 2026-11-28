@@ -140,7 +140,7 @@ function extractGeminiReplyText(payload) {
 
 async function fetchGeminiResponse(chatMessages = []) {
   const FALLBACK_WEBHOOK_URL =
-    "https://born-stem-loads-jacket.trycloudflare.com/webhook/curhatdeck-router";
+    "https://concert-phoenix-several-den.trycloudflare.com /webhook/curhatdeck-router";
 
   const cfg =
     typeof window !== "undefined" && window.CONFIG && typeof window.CONFIG === "object"
